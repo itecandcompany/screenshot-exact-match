@@ -150,6 +150,54 @@ export async function sendPasswordReset(email: string) {
   await authRequest("recover" + redirectTo, { email });
 }
 
+export async function consumeRecoverySession(): Promise<AuthSession | null> {
+  if (typeof window === "undefined" || !window.location.hash) return null;
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  if (params.get("type") !== "recovery") return null;
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  if (!accessToken || !refreshToken) return null;
+
+  assertConfigured();
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: {
+      apikey: supabaseKey as string,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) throw new Error("This password reset link is invalid or has expired. Request a new one.");
+  const user = (await response.json()) as Record<string, unknown>;
+  if (typeof user.id !== "string") throw new Error("The password reset link could not be verified.");
+  const session: AuthSession = {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    expires_at: Math.floor(Date.now() / 1000) + Number(params.get("expires_in") || 3600),
+    user: {
+      id: user.id,
+      ...(typeof user.email === "string" ? { email: user.email } : {}),
+    },
+  };
+  storeSession(session);
+  window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+  return session;
+}
+
+export async function updatePassword(session: AuthSession, password: string) {
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    method: "PUT",
+    headers: {
+      apikey: supabaseKey as string,
+      Authorization: `Bearer ${session.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+  });
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    throw new Error(typeof payload.message === "string" ? payload.message : "Your password could not be updated.");
+  }
+}
+
 export async function signOut() {
   const session = await getSession();
   if (session) {
