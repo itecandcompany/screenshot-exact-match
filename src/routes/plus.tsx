@@ -15,6 +15,7 @@ import {
 import {
   getSession,
   addOpportunityNote,
+  consumeRecoverySession,
   listOpportunities,
   listOpportunityActivity,
   listSavedOpportunities,
@@ -23,6 +24,7 @@ import {
   sendPasswordReset,
   setOpportunityFollowUp,
   updateOpportunityStatus,
+  updatePassword,
   signIn,
   signOut,
   signUp,
@@ -47,7 +49,7 @@ export const Route = createFileRoute("/plus")({
   component: NextdoorPlusPage,
 });
 
-type AuthMode = "signin" | "signup" | "reset";
+type AuthMode = "signin" | "signup" | "reset" | "set-password";
 
 async function hydrateAccount(
   session: AuthSession,
@@ -91,8 +93,10 @@ function NextdoorPlusPage() {
 
   useEffect(() => {
     let active = true;
-    void getSession()
-      .then(async (current) => {
+    void consumeRecoverySession()
+      .then(async (recovery) => {
+        const current = recovery ?? await getSession();
+        if (recovery && active) setMode("set-password");
         if (current && active) await loadAccount(current);
       })
       .catch((cause: unknown) => {
@@ -137,7 +141,14 @@ function NextdoorPlusPage() {
     setNotice("");
     setSubmitting(true);
     try {
-      if (mode === "reset") {
+      if (mode === "set-password") {
+        const current = await getSession();
+        if (!current) throw new Error("Your password reset session has expired. Request a new reset link.");
+        await updatePassword(current, password);
+        await loadAccount(current);
+        setNotice("Your password has been updated successfully.");
+        setMode("signin");
+      } else if (mode === "reset") {
         await sendPasswordReset(email.trim());
         setNotice("If an account exists for that email, a password reset link is on its way.");
         setMode("signin");
@@ -297,7 +308,7 @@ function NextdoorPlusPage() {
               </div>
             </div>
             <div className="p-7 md:p-12">
-              <div className="mb-7 flex gap-2 rounded-xl bg-[#f1f5f1] p-1">
+              {mode !== "set-password" && <div className="mb-7 flex gap-2 rounded-xl bg-[#f1f5f1] p-1">
                 <button
                   type="button"
                   onClick={() => setMode("signin")}
@@ -312,10 +323,10 @@ function NextdoorPlusPage() {
                 >
                   Create account
                 </button>
-              </div>
-              <h3 className="text-2xl font-black">{mode === "signup" ? "Create your workspace" : mode === "reset" ? "Reset your password" : "Welcome back"}</h3>
+              </div>}
+              <h3 className="text-2xl font-black">{mode === "signup" ? "Create your workspace" : mode === "reset" ? "Reset your password" : mode === "set-password" ? "Choose a new password" : "Welcome back"}</h3>
               <p className="mt-2 text-sm text-[#718075]">
-                {mode === "signup" ? "Start with your email and a secure password." : mode === "reset" ? "We will email you a secure link to choose a new password." : "Sign in to continue to your Nextdoor Plus workspace."}
+                {mode === "signup" ? "Start with your email and a secure password." : mode === "reset" ? "We will email you a secure link to choose a new password." : mode === "set-password" ? "Choose a new password for your account." : "Sign in to continue to your Nextdoor Plus workspace."}
               </p>
               <form onSubmit={(event) => void handleAuth(event)} className="mt-7 space-y-4">
                 {mode === "signup" && (
@@ -361,7 +372,7 @@ function NextdoorPlusPage() {
                   disabled={submitting}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1c5039] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#143d2b] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? "Please wait…" : mode === "signup" ? "Create my account" : mode === "reset" ? "Send reset link" : "Sign in to Nextdoor Plus"}
+                  {submitting ? "Please wait…" : mode === "signup" ? "Create my account" : mode === "reset" ? "Send reset link" : mode === "set-password" ? "Update password" : "Sign in to Nextdoor Plus"}
                   {!submitting && <ArrowUpRight size={17} />}
                 </button>
               </form>
