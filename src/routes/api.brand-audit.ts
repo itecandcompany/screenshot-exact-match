@@ -110,6 +110,21 @@ async function fetchBrandPage(input: string) {
     const ogDescription = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']*)["']/i)?.[1] || "";
     const imageAlts = [...html.matchAll(/<img[^>]+alt=["']([^"']+)["']/gi)]
       .slice(0, 12).map((match) => match[1]).filter(Boolean);
+    const rawImages = [
+      ...[...html.matchAll(/<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"']+)["']/gi)].map((match) => match[1]),
+      ...[...html.matchAll(/<img\\b[^>]*>/gi)].map((match) => {
+        const tag = match[0];
+        return tag.match(/(?:src|data-src)=["']([^"']+)["']/i)?.[1] ||
+          tag.match(/srcset=["']([^"']+)["']/i)?.[1]?.split(",")[0]?.trim().split(/\\s+/)[0] || "";
+      }),
+    ];
+    const imageUrls = [...new Set(rawImages.map((value) => {
+      try { return new URL(value, current).toString(); } catch { return ""; }
+    }).filter((value) => {
+      const url = isPublicWebUrl(value);
+      return !!url && /\\.(jpe?g|png|webp)(?:[?#]|$)/i.test(url.pathname + url.search) ||
+        !!url && (url.hostname === current!.hostname || url.hostname.endsWith("cloudinary.com") || url.hostname.endsWith("imgix.net") || url.hostname.endsWith("images.unsplash.com"));
+    }))].slice(0, 8);
     return {
       url: current.toString(),
       title,
@@ -117,6 +132,7 @@ async function fetchBrandPage(input: string) {
       ogTitle,
       ogDescription,
       imageAlts,
+      imageUrls,
       pageText: text,
     };
   }
