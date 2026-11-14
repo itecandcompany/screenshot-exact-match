@@ -212,7 +212,7 @@ Extracted page text: ${source.pageText}`;
           const output = result?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("");
           if (!output) return json({ error: "The AI returned an empty audit. Please try again." }, 502);
           const audit = JSON.parse(output);
-          return json({ audit, source: { url: source.url, title: source.title } });
+          return json({ audit, source: { url: source.url, title: source.title, imageUrls: source.imageUrls } });
         } catch (error) {
           const message = error instanceof Error ? error.message : "";
           if (message.includes("valid public website") || message.includes("redirected") || message.includes("read that website") || message.includes("readable web page") || message.includes("empty response")) {
