@@ -1,8 +1,8 @@
 export const site = {
   name: "NEXTDOOR ADS",
-  email: "",
-  phone: "",
-  whatsapp: import.meta.env["VITE_WHATSAPP_NUMBER"] || "",
+  email: "genesisfukuru@icloud.com",
+  phone: "0788508808",
+  whatsapp: import.meta.env["VITE_WHATSAPP_NUMBER"] || "255788508808",
   socials: [] as { name: string; url: string }[],
   location: "Tanzania · East Africa",
   slogan: "Your Brand. Our Creativity. More Impact.",
