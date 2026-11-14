@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application structure
+- Use TanStack Start file routes with a shared root shell; the supported platform cannot use the requested Next.js scaffold.
+- Keep editable business content and validation schemas in src/content so prices, services and portfolio entries have one source of truth.
+- Keep quote delivery explicitly unavailable until the owner connects their chosen email service and configures spam verification; never simulate a successful send or store leads without their requested destination.
