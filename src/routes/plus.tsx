@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowUpRight,
@@ -70,13 +70,13 @@ function NextdoorPlusPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  async function loadAccount(current: AuthSession, name = "") {
+  const loadAccount = useCallback(async (current: AuthSession, name = "") => {
     const data = await hydrateAccount(current, name);
     setSession(current);
     setWorkspace(data.workspace);
     setOpportunities(data.opportunities);
     setSaved(data.saved);
-  }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -95,7 +95,7 @@ function NextdoorPlusPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadAccount]);
 
   const savedIds = useMemo(
     () => new Set(saved.map((item) => item.opportunity_id)),
@@ -120,7 +120,7 @@ function NextdoorPlusPage() {
     );
   }, [opportunities, search]);
 
-  async function handleAuth(event: React.FormEvent<HTMLFormElement>) {
+  async function handleAuth(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setNotice("");
