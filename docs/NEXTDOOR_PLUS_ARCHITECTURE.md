@@ -2,84 +2,74 @@
 
 ## Purpose
 
-Nextdoor Plus is the authenticated product workspace for the NEXTDOOR ADS service. The existing public NEXTDOOR ADS website remains the marketing and lead-generation site. Plus is the customer workspace for discovering, evaluating, saving and managing digital advertising opportunities.
+Nextdoor Plus is the authenticated customer workspace for NEXTDOOR ADS. The existing public website remains the marketing and lead-generation site; Plus is where customers discover, evaluate, save and manage advertising opportunities.
 
-Initial market: Tanzania, with an East Africa expansion path. Preserve the existing forest-green / lime-green brand direction.
+Initial market: Tanzania, with an East Africa expansion path. Preserve the existing forest-green and lime-green brand direction.
 
 ## Repository strategy
 
-Build Plus on the `feature/nextdoor-plus` branch in this repository. Keep its implementation isolated in a dedicated route and feature module so it can be reviewed and merged independently. The `main` branch remains the production public site until a reviewed pull request is merged.
-
-Suggested boundaries:
-
-- `src/routes/plus/`: authenticated product routes (overview, discover, saved, campaigns, settings).
-- `src/features/nextdoor-plus/`: UI, domain types, opportunity scoring and workflow logic.
-- `src/lib/supabase/`: shared browser/server Supabase clients and session helpers.
-- `supabase/migrations/`: versioned schema and RLS policies.
-
-Do not fork or duplicate the public site. Keep shared brand tokens, navigation conventions and existing public routes intact.
+Development lives on `feature/nextdoor-plus`. The `main` branch remains the production public site until the draft pull request is reviewed and approved. The Plus implementation is isolated in `/plus` and `src/lib/supabase`.
 
 ## Customer journeys
 
-1. Visitor opens Nextdoor Plus from the public NEXTDOOR ADS site.
-2. Visitor signs up or signs in.
-3. A user profile and workspace are provisioned securely.
-4. The dashboard presents relevant advertising opportunities, their location, audience, channel, estimated reach/cost (only when sourced), deadline and status.
-5. The customer saves an opportunity, assigns an owner, adds notes, and tracks it through a workflow such as `new`, `reviewing`, `planned`, `active`, `completed` or `dismissed`.
-6. Customers can return to a single dashboard to review saved opportunities and activity.
+1. A visitor opens Nextdoor Plus from the public NEXTDOOR ADS navigation.
+2. They create an account, sign in, or request a password reset.
+3. The first authenticated visit creates a profile and Tanzania workspace.
+4. The dashboard displays published, open opportunities with source attribution and verification dates.
+5. A customer saves an opportunity, tracks its status, adds private notes and records follow-up dates.
+6. Workspace members return to review their shortlist and activity history.
 
-## Initial product areas
+## Existing Supabase schema
 
-- Authentication: sign up, sign in, sign out, password reset, protected routes.
-- Overview: opportunity counts, saved items, status summary and recent activity.
-- Discover: searchable/filterable opportunity directory with source and last-verified date.
-- Opportunity detail: full description, location/coverage, channel, eligibility, deadline, source link and evidence.
-- Saved opportunities: personal shortlist.
-- Management: status, notes, owner and follow-up date.
-- Account: profile and workspace settings.
+The existing Supabase project is `nextdoor-ads` (`tptxzsynpiiewxmketob`). It contains six tables:
 
-## Data model proposal
+- `profiles`: authenticated user profile.
+- `workspaces`: customer workspaces.
+- `workspace_members`: membership and role records.
+- `opportunities`: source-backed public listings.
+- `saved_opportunities`: workspace shortlist.
+- `opportunity_activity`: status changes, notes and follow-up events.
 
-Use UUID primary keys and UTC timestamps.
+The schema was already present before this implementation. The RLS policies are now explicitly versioned in `supabase/migrations/20261114231147_nextdoor_plus_rls_policy_hardening.sql`.
 
-- `profiles`: `id` references `auth.users.id`, display name, business name, phone, created/updated timestamps.
-- `workspaces`: owner, name, market/country, timestamps.
-- `workspace_members`: workspace, user, role.
-- `opportunities`: title, slug, description, country, region/city, channel, opportunity type, eligibility, deadline, source URL, source name, source evidence, verified_at, published_at, status.
-- `saved_opportunities`: workspace, opportunity, saved_by, created_at; unique workspace/opportunity pair.
-- `opportunity_activity`: workspace, opportunity, actor, event type, note, old/new status, created_at.
+## Current implementation
 
-Keep source facts separate from customer-specific workflow state. Do not present estimated reach, pricing or availability as factual unless the source provides it and the source/verification date is displayed.
+- `/plus` route linked from desktop, mobile and footer navigation.
+- Email/password sign-up and sign-in.
+- Email-confirmation-aware sign-up response.
+- Password reset request, recovery-token consumption and password update.
+- Browser session persistence, refresh and sign-out.
+- First-login profile and Tanzania workspace provisioning.
+- Published/open opportunity feed with search and source links.
+- Save-to-workspace action.
+- Private pipeline status events: interested, applied, won and dismissed.
+- Private notes and follow-up-date events.
+- Recent activity timeline for saved opportunities.
+- Truthful empty state when no published opportunities are available.
 
-## Supabase and security
+The browser client uses the existing Vercel variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. It does not expose a service-role key.
 
-The existing Supabase project was previously configured in Vercel (project ref `tptxzsynpiiewxmketob`). Repository inspection found no Supabase client module, Supabase dependency or application tables yet. Confirm the project and environment variables before connecting.
+## Row-level security
 
-Required environment variables:
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+RLS is enabled on all six public tables. Policies now ensure:
+- Users can read and update only their own profile.
+- Workspace owners and members can access only their workspaces.
+- Membership changes are restricted to self-join for an owned workspace or owner-managed membership.
+- Only open, published opportunities are visible to authenticated users.
+- Saved opportunities and activity are limited to workspace members.
+- Users can create activity only as themselves.
 
-Never put a service-role key in browser code. Use Supabase Auth; enable RLS on every customer table. Policies must scope reads/writes to the authenticated user's workspace membership. Validate privileged operations on the server. Do not create fake authentication or report a successful save when the database write failed.
+To avoid recursive RLS policy evaluation, workspace membership/ownership checks use tightly scoped SECURITY DEFINER helper functions in the non-exposed `private` schema. They are executable by authenticated users only. The Supabase security advisor returned no findings after hardening.
 
-## Integration with the public site
+## Known gaps and next work
 
-- Add a clearly labelled Nextdoor Plus entry point to the public navigation/CTA when the feature is ready.
-- Link to the Plus route or its eventual dedicated hostname; keep marketing pages public.
-- Share the same Supabase project and auth identity only after the schema, redirect URLs and RLS policies are configured.
-- Keep product-specific records in the Plus tables; do not change existing quote/contact flows as part of this feature.
-- Use a versioned API/server-function boundary for any data consumed by the public site. Avoid direct coupling between marketing page components and Plus dashboard internals.
+- No published opportunities currently exist in the table. Do not add fabricated listings; build a source-verified ingestion workflow.
+- Verify email confirmation and password recovery end-to-end against the Supabase Auth redirect and SMTP settings.
+- Add automated tests for cross-workspace isolation and all write policies.
+- Replace the small direct Auth/PostgREST wrapper with `@supabase/supabase-js` once the package and Bun lockfile can be regenerated together.
+- Add workspace profile/settings, opportunity detail pages, filters and a richer overview.
+- Run lint, typecheck, tests and production build; complete browser QA.
 
-## Definition of done
+## Release safety
 
-- Auth flows work against the configured Supabase project, including email confirmation and password recovery.
-- Protected routes redirect unauthenticated users to sign in.
-- RLS tests demonstrate that one workspace cannot read or mutate another workspace's records.
-- Opportunity discovery shows source attribution and verification dates.
-- Save, status change, notes and follow-up actions persist and show errors honestly.
-- Responsive, accessible UI follows existing NEXTDOOR ADS branding.
-- Typecheck, lint, unit tests and production build pass.
-- Existing public routes and quote/contact behavior remain unchanged.
-
-## Current implementation status
-
-The branch now includes the first working product increment: a `/plus` entry point linked from the public site's desktop, mobile and footer navigation; email/password sign-up and sign-in; password-reset email requests; browser session refresh; first-login profile and Tanzania workspace provisioning; published-opportunity browsing; saved-opportunity persistence; and activity events. The existing `nextdoor-ads` Supabase project is active and already contains the six core tables with RLS enabled. Vercel already has `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` configured for production, preview and development.\n\nThe opportunity table currently has no published records, so the dashboard deliberately shows a truthful empty state instead of sample listings. Opportunity ingestion, status/notes/follow-up management, automated RLS isolation tests, and full end-to-end auth verification remain outstanding. The current browser integration calls Supabase Auth and PostgREST endpoints directly; replace this small client wrapper with the official `@supabase/supabase-js` package when its dependency and Bun lockfile can be regenerated together. The existing README's unfinished email delivery and quote storage remain unrelated and must not be presented as operational.
+The Nextdoor Plus pull request remains draft. Its Vercel preview is not production. Do not merge or promote it until authentication, RLS isolation, tests and existing public-site regression checks pass. Existing quote/contact flows remain unchanged.
