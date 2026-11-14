@@ -37,6 +37,15 @@ export interface Opportunity {
   verified_at: string | null;
 }
 
+export interface OpportunityActivity {
+  id: string;
+  opportunity_id: string;
+  event_type: string;
+  note: string | null;
+  new_status: string | null;
+  created_at: string;
+}
+
 export interface SavedOpportunity {
   id: string;
   opportunity_id: string;
@@ -280,6 +289,13 @@ export async function listOpportunities(session: AuthSession) {
 export async function listSavedOpportunities(session: AuthSession, workspaceId: string) {
   return restRequest<SavedOpportunity[]>(
     `saved_opportunities?workspace_id=eq.${workspaceId}&select=id,opportunity_id,created_at,opportunities(id,title,description,country,region,city,channel,opportunity_type,eligibility,deadline,source_url,source_name,verified_at)&order=created_at.desc`,
+    { token: session.access_token },
+  );
+}
+
+export async function listOpportunityActivity(session: AuthSession, workspaceId: string) {
+  return restRequest<OpportunityActivity[]>(
+    `opportunity_activity?workspace_id=eq.${workspaceId}&select=id,opportunity_id,event_type,note,new_status,created_at&order=created_at.desc&limit=200`,
     { token: session.access_token },
   );
 }
