@@ -272,7 +272,7 @@ export async function loadWorkspace(session: AuthSession, displayName = ""): Pro
 
 export async function listOpportunities(session: AuthSession) {
   return restRequest<Opportunity[]>(
-    "opportunities?status=neq.draft&select=id,title,description,country,region,city,channel,opportunity_type,eligibility,deadline,source_url,source_name,verified_at&order=verified_at.desc.nullslast&limit=50",
+    "opportunities?status=eq.open&published_at=not.is.null&select=id,title,description,country,region,city,channel,opportunity_type,eligibility,deadline,source_url,source_name,verified_at&order=verified_at.desc.nullslast&limit=50",
     { token: session.access_token },
   );
 }
@@ -313,6 +313,81 @@ export async function saveOpportunity(
       opportunity_id: opportunityId,
       actor_id: session.user.id,
       event_type: "saved",
+    },
+  });
+}
+
+export async function updateOpportunityStatus(
+  session: AuthSession,
+  workspaceId: string,
+  opportunityId: string,
+  status: "interested" | "applied" | "won" | "dismissed",
+) {
+  const saved = await restRequest<Array<{ id: string }>>(
+    `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&select=id&limit=1`,
+    { token: session.access_token },
+  );
+  if (!saved[0]) throw new Error("Save this opportunity to your workspace before changing its status.");
+  await restRequest("opportunity_activity", {
+    method: "POST",
+    token: session.access_token,
+    prefer: "return=minimal",
+    body: {
+      workspace_id: workspaceId,
+      opportunity_id: opportunityId,
+      actor_id: session.user.id,
+      event_type: "status_changed",
+      new_status: status,
+    },
+  });
+}
+
+export async function addOpportunityNote(
+  session: AuthSession,
+  workspaceId: string,
+  opportunityId: string,
+  note: string,
+) {
+  const saved = await restRequest<Array<{ id: string }>>(
+    `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&select=id&limit=1`,
+    { token: session.access_token },
+  );
+  if (!saved[0]) throw new Error("Save this opportunity to your workspace before adding a note.");
+  await restRequest("opportunity_activity", {
+    method: "POST",
+    token: session.access_token,
+    prefer: "return=minimal",
+    body: {
+      workspace_id: workspaceId,
+      opportunity_id: opportunityId,
+      actor_id: session.user.id,
+      event_type: "note_added",
+      note: note.trim(),
+    },
+  });
+}
+
+export async function setOpportunityFollowUp(
+  session: AuthSession,
+  workspaceId: string,
+  opportunityId: string,
+  followUpAt: string,
+) {
+  const saved = await restRequest<Array<{ id: string }>>(
+    `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&select=id&limit=1`,
+    { token: session.access_token },
+  );
+  if (!saved[0]) throw new Error("Save this opportunity to your workspace before setting a follow-up.");
+  await restRequest("opportunity_activity", {
+    method: "POST",
+    token: session.access_token,
+    prefer: "return=minimal",
+    body: {
+      workspace_id: workspaceId,
+      opportunity_id: opportunityId,
+      actor_id: session.user.id,
+      event_type: "follow_up_set",
+      note: followUpAt,
     },
   });
 }
