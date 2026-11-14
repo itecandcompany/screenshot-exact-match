@@ -18,6 +18,7 @@ import {
   listSavedOpportunities,
   loadWorkspace,
   saveOpportunity,
+  sendPasswordReset,
   signIn,
   signOut,
   signUp,
@@ -41,7 +42,7 @@ export const Route = createFileRoute("/plus")({
   component: NextdoorPlusPage,
 });
 
-type AuthMode = "signin" | "signup";
+type AuthMode = "signin" | "signup" | "reset";
 
 async function hydrateAccount(
   session: AuthSession,
@@ -126,7 +127,11 @@ function NextdoorPlusPage() {
     setNotice("");
     setSubmitting(true);
     try {
-      if (mode === "signup") {
+      if (mode === "reset") {
+        await sendPasswordReset(email.trim());
+        setNotice("If an account exists for that email, a password reset link is on its way.");
+        setMode("signin");
+      } else if (mode === "signup") {
         const created = await signUp(email.trim(), password);
         if (!created) {
           setNotice("Your account request was received. Check your email to confirm your address, then sign in here.");
@@ -259,9 +264,9 @@ function NextdoorPlusPage() {
                   Create account
                 </button>
               </div>
-              <h3 className="text-2xl font-black">{mode === "signup" ? "Create your workspace" : "Welcome back"}</h3>
+              <h3 className="text-2xl font-black">{mode === "signup" ? "Create your workspace" : mode === "reset" ? "Reset your password" : "Welcome back"}</h3>
               <p className="mt-2 text-sm text-[#718075]">
-                {mode === "signup" ? "Start with your email and a secure password." : "Sign in to continue to your Nextdoor Plus workspace."}
+                {mode === "signup" ? "Start with your email and a secure password." : mode === "reset" ? "We will email you a secure link to choose a new password." : "Sign in to continue to your Nextdoor Plus workspace."}
               </p>
               <form onSubmit={(event) => void handleAuth(event)} className="mt-7 space-y-4">
                 {mode === "signup" && (
@@ -288,7 +293,7 @@ function NextdoorPlusPage() {
                     placeholder="you@company.com"
                   />
                 </label>
-                <label className="block text-sm font-semibold">
+                {mode !== "reset" && <label className="block text-sm font-semibold">
                   Password
                   <input
                     type="password"
@@ -300,18 +305,19 @@ function NextdoorPlusPage() {
                     className="mt-2 w-full rounded-xl border border-[#dce5dd] bg-white px-4 py-3 font-normal outline-none transition focus:border-[#4e9466] focus:ring-2 focus:ring-[#4e9466]/15"
                     placeholder="At least 8 characters"
                   />
-                </label>
+                </label>}
+                {mode === "signin" && <button type="button" onClick={() => setMode("reset")} className="text-sm font-semibold text-[#286442] hover:underline">Forgot your password?</button>}
                 <button
                   type="submit"
                   disabled={submitting}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1c5039] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#143d2b] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submitting ? "Please wait…" : mode === "signup" ? "Create my account" : "Sign in to Nextdoor Plus"}
+                  {submitting ? "Please wait…" : mode === "signup" ? "Create my account" : mode === "reset" ? "Send reset link" : "Sign in to Nextdoor Plus"}
                   {!submitting && <ArrowUpRight size={17} />}
                 </button>
               </form>
               <p className="mt-5 text-xs leading-6 text-[#7a887e]">
-                Your account is protected by Supabase authentication. New accounts may need email confirmation before the first sign-in.
+                Your account is protected by Supabase authentication. New accounts may need email confirmation before the first sign-in. You can request a password reset from the sign-in screen.
               </p>
             </div>
           </div>
