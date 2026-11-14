@@ -19,11 +19,16 @@ type Audit = {
   }[];
   staticAds: { headline: string; subheadline: string; visualDirection: string; cta: string }[];
 };
+type BrandSource = { url: string; title: string; imageUrls: string[] };
 
 export function BrandAudit() {
   const [brandUrl, setBrandUrl] = useState("");
   const [audit, setAudit] = useState<Audit | null>(null);
   const [sourceTitle, setSourceTitle] = useState("");
+  const [source, setSource] = useState<BrandSource | null>(null);
+  const [poster, setPoster] = useState("");
+  const [posterLoading, setPosterLoading] = useState(false);
+  const [posterError, setPosterError] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -42,10 +47,40 @@ export function BrandAudit() {
       if (!response.ok) throw new Error(result.error || "The audit could not be completed.");
       setAudit(result.audit);
       setSourceTitle(result.source?.title || result.source?.url || "");
+      setSource(result.source || null);
+      setPoster("");
+      setPosterError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function createPoster(ad: Audit["staticAds"][number]) {
+    if (!source) return;
+    setPosterLoading(true);
+    setPosterError("");
+    setPoster("");
+    try {
+      const response = await fetch("/api/brand-poster", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brandUrl: source.url,
+          imageUrls: source.imageUrls,
+          headline: ad.headline,
+          subheadline: ad.subheadline,
+          cta: ad.cta,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Poster generation failed.");
+      setPoster(result.poster);
+    } catch (err) {
+      setPosterError(err instanceof Error ? err.message : "Could not create the poster.");
+    } finally {
+      setPosterLoading(false);
     }
   }
 
@@ -91,7 +126,7 @@ export function BrandAudit() {
                 </button>
               </div>
               {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-              {loading && <p className="text-xs text-muted-foreground">Reading your public website and preparing your creative recommendations. This can take around 15–30 seconds.</p>}
+              {loading && <p className="text-xs text-muted-foreground">Reading your public website, finding brand images and preparing your creative recommendations. This can take around 15–30 seconds.</p>}
             </form>
             {audit && (
               <div className="mt-8 space-y-8" aria-live="polite">
@@ -131,6 +166,19 @@ export function BrandAudit() {
                     {audit.opportunities?.map((item, index) => <li key={item} className="flex gap-3 text-sm"><CheckCircle2 size={17} className="shrink-0 text-primary mt-0.5" /><span>{item}</span></li>)}
                   </ul>
                 </div>
+                {source?.imageUrls?.length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-sm mb-3">Brand images found on this website</h4>
+                    <p className="text-xs text-muted-foreground mb-3">We found these real images on the business website. NEXTDOOR ADS will use them as the source material for its posters.</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {source.imageUrls.slice(0, 6).map((imageUrl) => (
+                        <div key={imageUrl} className="aspect-square overflow-hidden rounded-sm border border-border bg-secondary">
+                          <img src={imageUrl} alt="Image found on the submitted brand website" loading="lazy" className="h-full w-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <h4 className="font-bold text-sm mb-4">Video ad scripts</h4>
                   <div className="space-y-4">
@@ -157,9 +205,21 @@ export function BrandAudit() {
                         <p className="text-sm mt-2">{ad.subheadline}</p>
                         <p className="text-xs text-muted-foreground mt-4"><strong>Visual direction:</strong> {ad.visualDirection}</p>
                         <span className="inline-block mt-4 rounded-sm bg-primary px-3 py-2 text-xs font-bold text-primary-foreground">{ad.cta}</span>
+                        <button type="button" onClick={() => createPoster(ad)} disabled={posterLoading || !source?.imageUrls?.length} className="mt-4 w-full rounded-sm border border-primary px-4 py-3 text-xs font-bold text-primary disabled:opacity-50">
+                          {posterLoading ? "Creating branded poster..." : "Create poster using website images"}
+                        </button>
                       </article>
                     ))}
                   </div>
+                  {posterError && <p role="alert" className="text-sm text-destructive mt-4">{posterError}</p>}
+                  {poster && (
+                    <div className="mt-6 space-y-3">
+                      <h4 className="font-bold text-sm">Your generated branded poster</h4>
+                      <img src={poster} alt="AI-generated branded advertising poster using images from the submitted website" className="w-full max-w-md rounded-sm border border-border" />
+                      <a href={poster} download="nextdoor-ads-brand-poster.png" className="inline-flex rounded-sm bg-primary px-4 py-3 text-xs font-bold text-primary-foreground">Download poster</a>
+                    </div>
+                  )}
+                  {!source?.imageUrls?.length && <p className="text-xs text-muted-foreground mt-4">We could not detect usable images on this page, so poster generation is unavailable for this audit. Try a page with product or brand photos.</p>}
                 </div>
                 <p className="text-xs text-muted-foreground border-t border-border pt-4">
                   AI-generated first draft based on the public page we could read. Scores are directional creative assessments, not measured campaign performance.
