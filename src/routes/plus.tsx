@@ -14,16 +14,21 @@ import {
 } from "lucide-react";
 import {
   getSession,
+  addOpportunityNote,
   listOpportunities,
+  listOpportunityActivity,
   listSavedOpportunities,
   loadWorkspace,
   saveOpportunity,
   sendPasswordReset,
+  setOpportunityFollowUp,
+  updateOpportunityStatus,
   signIn,
   signOut,
   signUp,
   type AuthSession,
   type Opportunity,
+  type OpportunityActivity,
   type SavedOpportunity,
   type Workspace,
 } from "@/lib/supabase/client";
@@ -47,13 +52,14 @@ type AuthMode = "signin" | "signup" | "reset";
 async function hydrateAccount(
   session: AuthSession,
   displayName: string,
-): Promise<{ workspace: Workspace; opportunities: Opportunity[]; saved: SavedOpportunity[] }> {
+): Promise<{ workspace: Workspace; opportunities: Opportunity[]; saved: SavedOpportunity[]; activity: OpportunityActivity[] }> {
   const workspace = await loadWorkspace(session, displayName);
-  const [opportunities, saved] = await Promise.all([
+  const [opportunities, saved, activity] = await Promise.all([
     listOpportunities(session),
     listSavedOpportunities(session, workspace.id),
+    listOpportunityActivity(session, workspace.id),
   ]);
-  return { workspace, opportunities, saved };
+  return { workspace, opportunities, saved, activity };
 }
 
 function NextdoorPlusPage() {
@@ -62,6 +68,9 @@ function NextdoorPlusPage() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [saved, setSaved] = useState<SavedOpportunity[]>([]);
+  const [activity, setActivity] = useState<OpportunityActivity[]>([]);
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
+  const [followUpDrafts, setFollowUpDrafts] = useState<Record<string, string>>({});
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -77,6 +86,7 @@ function NextdoorPlusPage() {
     setWorkspace(data.workspace);
     setOpportunities(data.opportunities);
     setSaved(data.saved);
+    setActivity(data.activity);
   }, []);
 
   useEffect(() => {
@@ -161,12 +171,50 @@ function NextdoorPlusPage() {
       const current = await getSession();
       if (!current || !workspace) throw new Error("Your session has expired. Please sign in again.");
       await saveOpportunity(current, workspace.id, opportunity.id);
-      const refreshed = await listSavedOpportunities(current, workspace.id);
+      const [refreshed, refreshedActivity] = await Promise.all([
+        listSavedOpportunities(current, workspace.id),
+        listOpportunityActivity(current, workspace.id),
+      ]);
       setSaved(refreshed);
+      setActivity(refreshedActivity);
       setSession(current);
       setNotice("Opportunity saved to your workspace.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We could not save this opportunity.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handlePipelineAction(
+    opportunityId: string,
+    action: "interested" | "applied" | "won" | "dismissed" | "note" | "follow_up",
+  ) {
+    if (!workspace) return;
+    setError("");
+    setNotice("");
+    setSubmitting(true);
+    try {
+      const current = await getSession();
+      if (!current) throw new Error("Your session has expired. Please sign in again.");
+      if (action === "note") {
+        const note = (noteDrafts[opportunityId] ?? "").trim();
+        if (!note) throw new Error("Write a note before saving it.");
+        await addOpportunityNote(current, workspace.id, opportunityId, note);
+        setNoteDrafts((previous) => ({ ...previous, [opportunityId]: "" }));
+        setNotice("Note added to your opportunity history.");
+      } else if (action === "follow_up") {
+        const date = followUpDrafts[opportunityId];
+        if (!date) throw new Error("Choose a follow-up date first.");
+        await setOpportunityFollowUp(current, workspace.id, opportunityId, new Date(date).toISOString());
+        setNotice("Follow-up added to your opportunity history.");
+      } else {
+        await updateOpportunityStatus(current, workspace.id, opportunityId, action);
+        setNotice("Opportunity status updated.");
+      }
+      setActivity(await listOpportunityActivity(current, workspace.id));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "We could not update this opportunity.");
     } finally {
       setSubmitting(false);
     }
@@ -180,6 +228,7 @@ function NextdoorPlusPage() {
       setWorkspace(null);
       setOpportunities([]);
       setSaved([]);
+      setActivity([]);
       setNotice("You have signed out.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not sign out.");
@@ -427,17 +476,76 @@ function NextdoorPlusPage() {
                 <p className="text-sm text-[#718075]">You have not saved any opportunities yet. Save a listing above to build your shortlist.</p>
               ) : (
                 <div className="divide-y divide-[#edf1ed]">
-                  {saved.map((item) => (
-                    <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                      <div>
-                        <h3 className="font-bold">{item.opportunities.title}</h3>
-                        <p className="mt-1 text-xs text-[#7a887e]">Saved {new Date(item.created_at).toLocaleDateString()}</p>
-                      </div>
-                      <a href={item.opportunities.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
-                        View source <ArrowUpRight size={13} />
-                      </a>
-                    </div>
-                  ))}
+                  {saved.map((item) => {
+                    const history = activity.filter((event) => event.opportunity_id === item.opportunity_id);
+                    const latestStatus = history.find((event) => event.event_type === "status_changed")?.new_status;
+                    return (
+                      <article key={item.id} className="space-y-4 py-5">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <h3 className="font-bold">{item.opportunities.title}</h3>
+                            <p className="mt-1 text-xs text-[#7a887e]">
+                              Saved {new Date(item.created_at).toLocaleDateString()}
+                              {latestStatus && ` · ${latestStatus.replace("_", " ")}`}
+                            </p>
+                          </div>
+                          <a href={item.opportunities.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
+                            View source <ArrowUpRight size={13} />
+                          </a>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(["interested", "applied", "won", "dismissed"] as const).map((status) => (
+                            <button
+                              key={status}
+                              type="button"
+                              onClick={() => void handlePipelineAction(item.opportunity_id, status)}
+                              disabled={submitting}
+                              className="rounded-lg border border-[#dce5dd] px-3 py-2 text-xs font-semibold capitalize text-[#365b43] hover:bg-[#edf5ed] disabled:opacity-50"
+                            >
+                              {status}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                          <input
+                            value={noteDrafts[item.opportunity_id] ?? ""}
+                            onChange={(event) => setNoteDrafts((previous) => ({ ...previous, [item.opportunity_id]: event.target.value }))}
+                            placeholder="Add a private note"
+                            className="min-w-0 rounded-lg border border-[#dce5dd] px-3 py-2 text-sm outline-none focus:border-[#4e9466]"
+                          />
+                          <button type="button" onClick={() => void handlePipelineAction(item.opportunity_id, "note")} disabled={submitting} className="rounded-lg bg-[#edf5ed] px-3 py-2 text-xs font-bold text-[#286442] disabled:opacity-50">
+                            Add note
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <input
+                            type="datetime-local"
+                            value={followUpDrafts[item.opportunity_id] ?? ""}
+                            onChange={(event) => setFollowUpDrafts((previous) => ({ ...previous, [item.opportunity_id]: event.target.value }))}
+                            className="rounded-lg border border-[#dce5dd] px-3 py-2 text-xs outline-none focus:border-[#4e9466]"
+                          />
+                          <button type="button" onClick={() => void handlePipelineAction(item.opportunity_id, "follow_up")} disabled={submitting} className="rounded-lg bg-[#1c5039] px-3 py-2 text-xs font-bold text-white disabled:opacity-50">
+                            Set follow-up
+                          </button>
+                        </div>
+                        {history.slice(0, 4).length > 0 && (
+                          <div className="rounded-xl bg-[#f6f8f5] p-3">
+                            <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[#718075]">Recent activity</p>
+                            <ul className="space-y-2">
+                              {history.slice(0, 4).map((event) => (
+                                <li key={event.id} className="text-xs text-[#617469]">
+                                  <span className="font-semibold">{event.event_type.replace("_", " ")}</span>
+                                  {event.new_status && ` · ${event.new_status}`}
+                                  {event.note && ` · ${event.note}`}
+                                  <span className="ml-2 text-[#8a9a8e]">{new Date(event.created_at).toLocaleString()}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </section>
