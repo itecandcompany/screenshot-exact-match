@@ -148,7 +148,7 @@ export const Route = createFileRoute("/api/brand-audit")({
 
         try {
           const source = await fetchBrandPage(brandUrl);
-          const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+          const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
           const prompt = `You are NEXTDOOR ADS, a practical advertising strategist serving small and growing businesses in Tanzania and East Africa.
 Audit the brand using only the supplied public website evidence. Never invent facts, prices, guarantees, customer numbers, awards, or product features. If evidence is missing, say so.
 Return valid JSON only with this exact shape:
