@@ -23,6 +23,7 @@ import {
 } from "@/components/agency";
 import { projects } from "@/content/portfolio";
 import { seo } from "@/content/site";
+import { BrandAudit } from "@/components/brand-audit";
 export const Route = createFileRoute("/")({
   head: () => ({
     ...seo(
@@ -230,6 +231,7 @@ function Index() {
           </p>
         </div>
       </section>
+      <BrandAudit />
       <Adscore />
       <ClosingCTA />
     </>
