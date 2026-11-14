@@ -127,7 +127,10 @@ export async function signIn(email: string, password: string) {
 
 export async function signUp(email: string, password: string) {
   const payload = await authRequest("signup", { email, password });
-  const session = normaliseSession(payload);
+  const nested = payload.session;
+  const session = normaliseSession(
+    nested && typeof nested === "object" ? (nested as Record<string, unknown>) : payload,
+  );
   if (session) storeSession(session);
   return session;
 }
