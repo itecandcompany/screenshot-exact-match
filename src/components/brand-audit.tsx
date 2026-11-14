@@ -57,7 +57,7 @@ export function BrandAudit() {
             <div className="eyebrow"><Sparkles size={14} /> Free AI brand audit</div>
             <h2 className="section-title">See What Your Brand Could Be Doing Better.</h2>
             <p className="section-copy mt-5">
-              Share your public website and get a practical brand score, fresh campaign ideas and
+              Share your public website or social profile URL and get a practical brand score, fresh campaign ideas and
               ready-to-adapt social content — built around what your business actually offers.
             </p>
             <div className="mt-7 flex flex-col gap-3 text-sm">
@@ -66,12 +66,12 @@ export function BrandAudit() {
               <span className="flex items-center gap-3"><ImageIcon size={17} /> Two static ad creative directions</span>
             </div>
             <p className="text-xs text-muted-foreground mt-7">
-              Works best with a public website. Private pages and social platforms may block automated reading.
+              Public website URLs work best. Instagram and TikTok may block automated reading; paste a public profile link if you want us to try.
             </p>
           </div>
           <div className="rounded-sm border border-border bg-background p-5 sm:p-7">
             <form onSubmit={runAudit} className="space-y-4">
-              <label htmlFor="brand-url" className="block text-sm font-semibold">Your website address</label>
+              <label htmlFor="brand-url" className="block text-sm font-semibold">Website or public profile URL</label>
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   id="brand-url"
@@ -79,7 +79,7 @@ export function BrandAudit() {
                   required
                   value={brandUrl}
                   onChange={(event) => setBrandUrl(event.target.value)}
-                  placeholder="https://yourbusiness.com"
+                  placeholder="https://yourbusiness.com or https://instagram.com/yourbrand"
                   className="min-w-0 flex-1 rounded-sm border border-input bg-background px-4 py-3 text-sm outline-none focus:border-primary"
                 />
                 <button
