@@ -119,19 +119,44 @@ Brand name/site: ${page.title} / ${page.url}
 Website context: ${page.plainText.slice(0, 3500)}
 Design it like a professional agency campaign: strong hierarchy, readable typography, deliberate negative space, excellent contrast, premium composition, clear focal product image, brand-consistent colours. Output the poster artwork, not a mockup on a wall or phone. No extra logos, watermarks, prices, phone numbers, addresses or claims unless explicitly present in the supplied copy.`;
           const model = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image";
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+          const payload = JSON.stringify({
+            contents: [{ role: "user", parts: [...parts, { text: prompt }] }],
+            generationConfig: { responseModalities: ["TEXT", "IMAGE"], temperature: 0.7 },
+          });
+          let response = await fetch(endpoint, {
             method: "POST",
             signal: AbortSignal.timeout(60000),
             headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [...parts, { text: prompt }] }],
-              generationConfig: { responseModalities: ["TEXT", "IMAGE"], temperature: 0.7 },
-            }),
+            body: payload,
           });
+          // Retry one transient upstream overload, but do not retry quota/rate-limit responses.
+          if (response.status === 503) {
+            await new Promise((resolve) => setTimeout(resolve, 1800));
+            response = await fetch(endpoint, {
+              method: "POST",
+              signal: AbortSignal.timeout(60000),
+              headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+              body: payload,
+            });
+          }
           if (!response.ok) {
             const errorBody = await response.json().catch(() => ({}));
-            console.error("Gemini poster generation failed", response.status, errorBody?.error?.status || "unknown");
-            return json({ error: response.status === 429 ? "The image service is busy. Please try again shortly." : "We could not generate the poster right now. Please try again." }, response.status === 429 ? 429 : 502);
+            const apiError = errorBody?.error || {};
+            const message = String(apiError.message || "").slice(0, 500);
+            const status = String(apiError.status || "");
+            console.error("Gemini poster generation failed", JSON.stringify({ httpStatus: response.status, status, message }));
+            if (response.status === 429) {
+              const quotaIssue = /quota|billing|limit.*(free|plan)|resource_exhausted/i.test(message + " " + status);
+              return json({
+                error: quotaIssue
+                  ? "Gemini has reached the image-generation quota for this API key. Check your Google AI Studio billing and image-model quota, then try again."
+                  : "Gemini is temporarily rate-limiting image generation. Wait a minute and try again.",
+              }, 429);
+            }
+            if (response.status === 503) return json({ error: "Google's image-generation service is temporarily overloaded. Please try again in a minute." }, 503);
+            if (response.status === 403) return json({ error: "This Gemini API key does not currently have permission to use the image-generation model. Check API access and billing in Google AI Studio." }, 502);
+            return json({ error: "The image-generation request failed. Check that the Gemini image model is enabled for this API key, then try again." }, 502);
           }
           const result = await response.json();
           const outputParts = result?.candidates?.[0]?.content?.parts || [];
