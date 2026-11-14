@@ -288,7 +288,7 @@ function NextdoorPlusPage() {
           <div className="flex min-h-72 items-center justify-center gap-3 text-sm text-[#617469]">
             <RefreshCw className="animate-spin" size={18} /> Loading your secure workspace…
           </div>
-        ) : !session || !workspace ? (
+        ) : !session || !workspace || mode === "set-password" ? (
           <div className="grid overflow-hidden rounded-3xl border border-[#dfe8e0] bg-white shadow-sm lg:grid-cols-[1.05fr_0.95fr]">
             <div className="bg-[#173f30] p-8 text-white md:p-12">
               <div className="mb-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#c8f36b] text-[#173f30]">
@@ -341,7 +341,7 @@ function NextdoorPlusPage() {
                     />
                   </label>
                 )}
-                <label className="block text-sm font-semibold">
+                {mode !== "set-password" && <label className="block text-sm font-semibold">
                   Email address
                   <input
                     type="email"
@@ -352,7 +352,7 @@ function NextdoorPlusPage() {
                     className="mt-2 w-full rounded-xl border border-[#dce5dd] bg-white px-4 py-3 font-normal outline-none transition focus:border-[#4e9466] focus:ring-2 focus:ring-[#4e9466]/15"
                     placeholder="you@company.com"
                   />
-                </label>
+                </label>}
                 {mode !== "reset" && <label className="block text-sm font-semibold">
                   Password
                   <input
