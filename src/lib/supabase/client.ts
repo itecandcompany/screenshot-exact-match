@@ -132,6 +132,12 @@ export async function signUp(email: string, password: string) {
   return session;
 }
 
+export async function sendPasswordReset(email: string) {
+  const redirectTo =
+    typeof window === "undefined" ? "" : "?redirect_to=" + encodeURIComponent(window.location.origin + "/plus");
+  await authRequest("recover" + redirectTo, { email });
+}
+
 export async function signOut() {
   const session = await getSession();
   if (session) {
