@@ -11,58 +11,71 @@ function publicUrl(value: string): URL | null {
     if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) return null;
     if (!host || host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
       host.endsWith(".internal") || host === "0.0.0.0" || host === "::1" ||
-      /^127\\./.test(host) || /^10\\./.test(host) || /^192\\.168\\./.test(host) ||
-      /^169\\.254\\./.test(host) || /^172\\.(1[6-9]|2\\d|3[01])\\./.test(host) ||
-      /^\\d{1,3}(\\.\\d{1,3}){3}$/.test(host)) return null;
+      /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) ||
+      /^169\.254\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+      /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return null;
     return url;
   } catch { return null; }
 }
 
+async function fetchPublic(url: URL, headers: Record<string, string>) {
+  let current = url;
+  for (let redirects = 0; redirects <= 3; redirects += 1) {
+    const response = await fetch(current, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(10000),
+      headers,
+    });
+    if ([301, 302, 303, 307, 308].includes(response.status)) {
+      const location = response.headers.get("location");
+      if (!location || redirects === 3) throw new Error("The website redirected too many times.");
+      const next = publicUrl(new URL(location, current).toString());
+      if (!next) throw new Error("The website redirected to an unsupported address.");
+      current = next;
+      continue;
+    }
+    return { response, url: current };
+  }
+  throw new Error("We could not read that website.");
+}
+
 async function readPage(url: URL) {
-  const response = await fetch(url, {
-    redirect: "follow",
-    signal: AbortSignal.timeout(10000),
-    headers: { "User-Agent": "NEXTDOOR-ADS-BrandAudit/1.0", Accept: "text/html" },
-  });
+  const { response, url: finalUrl } = await fetchPublic(url, { "User-Agent": "NEXTDOOR-ADS-BrandAudit/1.0", Accept: "text/html" });
   if (!response.ok) throw new Error("We could not read that website.");
   const html = await response.text();
   if (html.length > 1_500_000) throw new Error("That website is too large to process.");
   const raw = [
     ...[...html.matchAll(/<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"']+)["']/gi)].map((m) => m[1]),
-    ...[...html.matchAll(/<img\\b[^>]*>/gi)].map((m) => {
+    ...[...html.matchAll(/<img\b[^>]*>/gi)].map((m) => {
       const tag = m[0];
       return tag.match(/(?:src|data-src)=["']([^"']+)["']/i)?.[1] ||
-        tag.match(/srcset=["']([^"']+)["']/i)?.[1]?.split(",")[0]?.trim().split(/\\s+/)[0] || "";
+        tag.match(/srcset=["']([^"']+)["']/i)?.[1]?.split(",")[0]?.trim().split(/\s+/)[0] || "";
     }),
   ];
   const images = [...new Set(raw.map((value) => {
-    try { return new URL(value, url).toString(); } catch { return ""; }
+    try { return new URL(value, finalUrl).toString(); } catch { return ""; }
   }).filter((value) => {
     const candidate = publicUrl(value);
     if (!candidate) return false;
-    const extension = /\\.(jpe?g|png|webp)(?:[?#]|$)/i.test(candidate.pathname + candidate.search);
-    const knownCdn = candidate.hostname === url.hostname ||
+    const extension = /\.(jpe?g|png|webp)(?:[?#]|$)/i.test(candidate.pathname + candidate.search);
+    const knownCdn = candidate.hostname === finalUrl.hostname ||
       candidate.hostname.endsWith("cloudinary.com") ||
       candidate.hostname.endsWith("imgix.net") ||
       candidate.hostname.endsWith("images.unsplash.com") ||
       candidate.hostname.endsWith("googleusercontent.com");
     return extension || knownCdn;
   }))].slice(0, 8);
-  const title = html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1]?.replace(/<[^>]+>/g, "").trim() || url.hostname;
-  const plainText = html.replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, " ")
-    .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 7000);
-  return { images, title, plainText, url: url.toString() };
+  const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/<[^>]+>/g, "").trim() || url.hostname;
+  const plainText = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 7000);
+  return { images, title, plainText, url: finalUrl.toString() };
 }
 
 async function imagePart(url: string) {
   let current = publicUrl(url);
   if (!current) throw new Error("A website image address was not valid.");
-  const response = await fetch(current, {
-    redirect: "follow",
-    signal: AbortSignal.timeout(10000),
-    headers: { "User-Agent": "NEXTDOOR-ADS-BrandAudit/1.0", Accept: "image/jpeg,image/png,image/webp" },
-  });
+  const { response } = await fetchPublic(current, { "User-Agent": "NEXTDOOR-ADS-BrandAudit/1.0", Accept: "image/jpeg,image/png,image/webp" });
   if (!response.ok) throw new Error("A brand image could not be downloaded.");
   const mimeType = (response.headers.get("content-type") || "").split(";")[0].toLowerCase();
   if (!["image/jpeg", "image/png", "image/webp"].includes(mimeType)) throw new Error("A selected brand asset is not a supported image.");
@@ -97,7 +110,7 @@ export const Route = createFileRoute("/api/brand-poster")({
           }
           if (!parts.length) return json({ error: "We could not load the selected website images. Try another brand image." }, 400);
           const prompt = `Create a polished, finished 4:5 social media advertising poster for the business shown in the attached real website photos.
-Use the attached website assets as the actual product/brand imagery. Preserve the real product, food, people, packaging and physical details; do not replace them with stock imagery or invent products. Use the website's visual identity: infer its palette, mood and market positioning from this page evidence. Do not invent or redraw a logo; if no logo image is supplied, leave a clean area for the brand logo to be added later.
+Use the attached website assets as the actual, dominant photographic content of the poster. Reuse the supplied photo itself as the main image rather than generating a substitute, stock photo, lookalike or new person. If a real person appears, preserve their recognizable face and appearance; do not invent or materially alter them. Preserve real products, food, packaging and physical details. Use the website's visual identity: infer its palette, mood and market positioning from this page evidence. Do not invent or redraw a logo; if no logo image is supplied, leave a clean area for the brand logo to be added later.
 Poster copy (spell exactly; do not add fake claims):
 Headline: ${headline || "A better way to discover this brand"}
 Supporting line: ${subheadline || page.title}
