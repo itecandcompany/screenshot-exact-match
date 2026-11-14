@@ -20,6 +20,7 @@ export function SiteHeader() {
               {n.label}
             </Link>
           ))}
+          <Link className="nav-link" to="/plus">Nextdoor Plus</Link>
         </nav>
         <Button asChild variant="agency" className="hidden xl:inline-flex text-xs">
           <Link to="/contact">
@@ -45,6 +46,7 @@ export function SiteHeader() {
                   {n.label}
                 </Link>
               ))}
+              <Link to="/plus" onClick={() => setOpen(false)} className="nav-link">Nextdoor Plus</Link>
               <Button asChild variant="agency">
                 <Link to="/contact" onClick={() => setOpen(false)}>
                   Get a Free Quote <ArrowUpRight />
@@ -81,6 +83,7 @@ export function SiteFooter() {
                 {n.label}
               </Link>
             ))}
+            <Link to="/plus">Nextdoor Plus</Link>
           </div>
         </div>
         <div>
