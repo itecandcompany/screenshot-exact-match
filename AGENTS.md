@@ -30,6 +30,7 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Application structure
+- Generate campaign briefs through a public, validated createServerFn using the AI Gateway SDK; keep drafts in page state only to avoid storing prospective-client leads.
 - Use TanStack Start file routes with a shared root shell; the supported platform cannot use the requested Next.js scaffold.
 - Keep editable business content and validation schemas in src/content so prices, services and portfolio entries have one source of truth.
 - Keep quote delivery explicitly unavailable until the owner connects their chosen email service and configures spam verification; never simulate a successful send or store leads without their requested destination.

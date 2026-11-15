@@ -119,11 +119,11 @@ async function fetchBrandPage(input: string) {
       }),
     ];
     const imageUrls = [...new Set(rawImages.map((value) => {
-      try { return new URL(value, current).toString(); } catch { return ""; }
+      try { return value ? new URL(value, current?.toString()).toString() : ""; } catch { return ""; }
     }).filter((value) => {
       const url = isPublicWebUrl(value);
       return !!url && /\.(jpe?g|png|webp)(?:[?#]|$)/i.test(url.pathname + url.search) ||
-        !!url && (url.hostname === current!.hostname || url.hostname.endsWith("cloudinary.com") || url.hostname.endsWith("imgix.net") || url.hostname.endsWith("images.unsplash.com"));
+        !!url && (url.hostname === current?.hostname || url.hostname.endsWith("cloudinary.com") || url.hostname.endsWith("imgix.net") || url.hostname.endsWith("images.unsplash.com"));
     }))].slice(0, 8);
     return {
       url: current.toString(),
@@ -143,7 +143,7 @@ export const Route = createFileRoute("/api/brand-audit")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env['GEMINI_API_KEY'];
         if (!apiKey) return json({ error: "The AI audit service is not configured yet. Please try again later." }, 503);
 
         let body: AuditInput;
@@ -164,7 +164,7 @@ export const Route = createFileRoute("/api/brand-audit")({
 
         try {
           const source = await fetchBrandPage(brandUrl);
-          const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+          const model = process.env['GEMINI_MODEL'] || "gemini-3.5-flash-lite";
           const prompt = `You are NEXTDOOR ADS, a practical advertising strategist serving small and growing businesses in Tanzania and East Africa.
 Audit the brand using only the supplied public website evidence. Never invent facts, prices, guarantees, customer numbers, awards, or product features. If evidence is missing, say so.
 Return valid JSON only with this exact shape:

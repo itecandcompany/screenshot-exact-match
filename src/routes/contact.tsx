@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { seo, site } from "@/content/site";
 import { services } from "@/content/services";
@@ -39,6 +41,9 @@ function Contact() {
               Based in Tanzania. Creating for businesses, organisations and ambitious brands across
               East Africa.
             </p>
+            <Button asChild variant="forest" className="mt-6">
+              <Link to="/campaign-brief"><Sparkles /> Create an AI campaign brief</Link>
+            </Button>
             <div className="border-t border-border mt-8 pt-6">
               <p className="text-xs font-bold">Email</p>
               <p className="section-copy mt-2">{site.email || "[EMAIL TO BE ADDED]"}</p>

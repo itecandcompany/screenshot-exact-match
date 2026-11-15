@@ -166,7 +166,7 @@ export function BrandAudit() {
                     {audit.opportunities?.map((item, index) => <li key={item} className="flex gap-3 text-sm"><CheckCircle2 size={17} className="shrink-0 text-primary mt-0.5" /><span>{item}</span></li>)}
                   </ul>
                 </div>
-                {source?.imageUrls?.length > 0 && (
+                {source && source.imageUrls.length > 0 && (
                   <div>
                     <h4 className="font-bold text-sm mb-3">Brand images found on this website</h4>
                     <p className="text-xs text-muted-foreground mb-3">We found these real images on the business website. NEXTDOOR ADS will use them as the source material for its posters.</p>

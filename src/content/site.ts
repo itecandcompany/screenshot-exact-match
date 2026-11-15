@@ -14,6 +14,7 @@ export const nav = [
   { label: "Portfolio", to: "/portfolio" },
   { label: "Our Process", to: "/process" },
   { label: "Pricing", to: "/pricing" },
+  { label: "AI Brief", to: "/campaign-brief" },
   { label: "Contact", to: "/contact" },
 ] as const;
 export function seo(title: string, description: string) {

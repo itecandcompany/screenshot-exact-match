@@ -11,11 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as CampaignBriefRouteImport } from './routes/campaign-brief'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProcessRouteImport } from './routes/process'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ApiBrandAuditRouteImport } from './routes/api.brand-audit'
+import { Route as ApiBrandPosterRouteImport } from './routes/api.brand-poster'
 import { Route as PortfolioIndexRouteImport } from './routes/portfolio.index'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
@@ -29,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CampaignBriefRoute = CampaignBriefRouteImport.update({
+  id: '/campaign-brief',
+  path: '/campaign-brief',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -56,6 +64,16 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBrandAuditRoute = ApiBrandAuditRouteImport.update({
+  id: '/api/brand-audit',
+  path: '/api/brand-audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBrandPosterRoute = ApiBrandPosterRouteImport.update({
+  id: '/api/brand-poster',
+  path: '/api/brand-poster',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortfolioIndexRoute = PortfolioIndexRouteImport.update({
   id: '/portfolio/',
   path: '/portfolio/',
@@ -80,11 +98,14 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/campaign-brief': typeof CampaignBriefRoute
   '/contact': typeof ContactRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/process': typeof ProcessRoute
   '/terms': typeof TermsRoute
+  '/api/brand-audit': typeof ApiBrandAuditRoute
+  '/api/brand-poster': typeof ApiBrandPosterRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/portfolio/': typeof PortfolioIndexRoute
@@ -93,11 +114,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/campaign-brief': typeof CampaignBriefRoute
   '/contact': typeof ContactRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/process': typeof ProcessRoute
   '/terms': typeof TermsRoute
+  '/api/brand-audit': typeof ApiBrandAuditRoute
+  '/api/brand-poster': typeof ApiBrandPosterRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/portfolio': typeof PortfolioIndexRoute
@@ -107,11 +131,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/campaign-brief': typeof CampaignBriefRoute
   '/contact': typeof ContactRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/process': typeof ProcessRoute
   '/terms': typeof TermsRoute
+  '/api/brand-audit': typeof ApiBrandAuditRoute
+  '/api/brand-poster': typeof ApiBrandPosterRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/portfolio/': typeof PortfolioIndexRoute
@@ -122,11 +149,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/campaign-brief'
     | '/contact'
     | '/pricing'
     | '/privacy'
     | '/process'
     | '/terms'
+    | '/api/brand-audit'
+    | '/api/brand-poster'
     | '/portfolio/$slug'
     | '/services/$slug'
     | '/portfolio/'
@@ -135,11 +165,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/campaign-brief'
     | '/contact'
     | '/pricing'
     | '/privacy'
     | '/process'
     | '/terms'
+    | '/api/brand-audit'
+    | '/api/brand-poster'
     | '/portfolio/$slug'
     | '/services/$slug'
     | '/portfolio'
@@ -148,11 +181,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/campaign-brief'
     | '/contact'
     | '/pricing'
     | '/privacy'
     | '/process'
     | '/terms'
+    | '/api/brand-audit'
+    | '/api/brand-poster'
     | '/portfolio/$slug'
     | '/services/$slug'
     | '/portfolio/'
@@ -162,11 +198,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  CampaignBriefRoute: typeof CampaignBriefRoute
   ContactRoute: typeof ContactRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProcessRoute: typeof ProcessRoute
   TermsRoute: typeof TermsRoute
+  ApiBrandAuditRoute: typeof ApiBrandAuditRoute
+  ApiBrandPosterRoute: typeof ApiBrandPosterRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
   PortfolioIndexRoute: typeof PortfolioIndexRoute
@@ -187,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/campaign-brief': {
+      id: '/campaign-brief'
+      path: '/campaign-brief'
+      fullPath: '/campaign-brief'
+      preLoaderRoute: typeof CampaignBriefRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -224,6 +270,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/brand-audit': {
+      id: '/api/brand-audit'
+      path: '/api/brand-audit'
+      fullPath: '/api/brand-audit'
+      preLoaderRoute: typeof ApiBrandAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/brand-poster': {
+      id: '/api/brand-poster'
+      path: '/api/brand-poster'
+      fullPath: '/api/brand-poster'
+      preLoaderRoute: typeof ApiBrandPosterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portfolio/': {
       id: '/portfolio/'
       path: '/portfolio'
@@ -258,11 +318,14 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  CampaignBriefRoute: CampaignBriefRoute,
   ContactRoute: ContactRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProcessRoute: ProcessRoute,
   TermsRoute: TermsRoute,
+  ApiBrandAuditRoute: ApiBrandAuditRoute,
+  ApiBrandPosterRoute: ApiBrandPosterRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
   ServicesSlugRoute: ServicesSlugRoute,
   PortfolioIndexRoute: PortfolioIndexRoute,

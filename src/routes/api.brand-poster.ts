@@ -53,7 +53,7 @@ async function readPage(url: URL) {
     }),
   ];
   const images = [...new Set(raw.map((value) => {
-    try { return new URL(value, finalUrl).toString(); } catch { return ""; }
+    try { return value ? new URL(value, finalUrl).toString() : ""; } catch { return ""; }
   }).filter((value) => {
     const candidate = publicUrl(value);
     if (!candidate) return false;
@@ -77,7 +77,7 @@ async function imagePart(url: string) {
   if (!current) throw new Error("A website image address was not valid.");
   const { response } = await fetchPublic(current, { "User-Agent": "NEXTDOOR-ADS-BrandAudit/1.0", Accept: "image/jpeg,image/png,image/webp" });
   if (!response.ok) throw new Error("A brand image could not be downloaded.");
-  const mimeType = (response.headers.get("content-type") || "").split(";")[0].toLowerCase();
+  const mimeType = ((response.headers.get("content-type") || "").split(";")[0] || "").toLowerCase();
   if (!["image/jpeg", "image/png", "image/webp"].includes(mimeType)) throw new Error("A selected brand asset is not a supported image.");
   const bytes = new Uint8Array(await response.arrayBuffer());
   if (!bytes.length || bytes.length > 6_000_000) throw new Error("A brand image is too large to use.");
@@ -90,7 +90,7 @@ export const Route = createFileRoute("/api/brand-poster")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env['GEMINI_API_KEY'];
         if (!apiKey) return json({ error: "The AI poster service is not configured." }, 503);
         try {
           const body = await request.json();
@@ -118,7 +118,7 @@ Call to action: ${cta}
 Brand name/site: ${page.title} / ${page.url}
 Website context: ${page.plainText.slice(0, 3500)}
 Design it like a professional agency campaign: strong hierarchy, readable typography, deliberate negative space, excellent contrast, premium composition, clear focal product image, brand-consistent colours. Output the poster artwork, not a mockup on a wall or phone. No extra logos, watermarks, prices, phone numbers, addresses or claims unless explicitly present in the supplied copy.`;
-          const model = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image";
+          const model = process.env['GEMINI_IMAGE_MODEL'] || "gemini-3.1-flash-image";
           const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
           const payload = JSON.stringify({
             contents: [{ role: "user", parts: [...parts, { text: prompt }] }],
