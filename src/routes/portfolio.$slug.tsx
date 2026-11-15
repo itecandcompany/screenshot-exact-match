@@ -35,6 +35,16 @@ function Project() {
             <span className="text-xs font-bold uppercase">{p.isSample ? "Independent Sample Concept" : `Commissioned Client Work · ${p.clientName}`}</span>
             <h2 className="section-title">The creative direction</h2>
             <p className="section-copy mt-6">{p.description}</p>
+            <div className="mt-8 rounded-sm border border-border bg-secondary p-5">
+              <h3 className="font-bold text-sm">What NEXTDOOR ADS delivered</h3>
+              <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                {p.servicesProvided.map((service) => <li key={service}>• {service}</li>)}
+              </ul>
+              <p className="section-copy text-xs mt-4">
+                This portfolio entry documents the creative deliverable. No reach, sales or campaign
+                performance figures have been provided.
+              </p>
+            </div>
             <dl className="mt-8 space-y-6">
               <div>
                 <dt className="font-bold text-xs">Client</dt>
@@ -50,9 +60,9 @@ function Project() {
               </div>
             </dl>
             <Button asChild variant="forest" className="mt-8">
-              <Link to="/contact">
+              <a href="/#brand-audit">
                 Create Something for Your Brand <ArrowUpRight />
-              </Link>
+              </a>
             </Button>
           </div>
         </div>
