@@ -65,7 +65,7 @@ export function ProjectGrid({ items = projects }: { items?: typeof projects }) {
               height={1024}
               className="project-image"
             />
-            <span className="sample-badge">Sample Work</span>
+            <span className="sample-badge">{p.isSample ? "Sample Work" : `Client Work · ${p.clientName}`}</span>
           </div>
           <div className="flex justify-between mt-5">
             <div>
