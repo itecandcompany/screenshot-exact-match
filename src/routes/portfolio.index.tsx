@@ -85,11 +85,11 @@ function Portfolio() {
       </section>
       <section className="section bg-secondary">
         <div className="container">
-          <div className="eyebrow">Independent concepts</div>
-          <h2 className="section-title">More Creative Possibilities.</h2>
+          <div className="eyebrow">Explore the collection</div>
+          <h2 className="section-title">Client Work, Samples & Creative Templates.</h2>
           <p className="section-copy mt-4 max-w-2xl">
-            The concepts below are independent sample work, not commissioned client projects or
-            performance case studies.
+            Browse commissioned work created for clients alongside independent sample concepts.
+            Each project is labelled clearly so visitors can distinguish client work from illustrative templates.
           </p>
           <div className="flex flex-wrap gap-2 mt-8" aria-label="Portfolio categories">
             {["All Work", ...categories].map((c) => (
@@ -110,8 +110,8 @@ function Portfolio() {
           </div>
           <ProjectGrid items={filtered} />
           <p className="section-copy text-xs mt-10">
-            Some concepts share illustrative artwork; original project photography will replace
-            these examples.
+            Sample concepts are illustrative examples, not commissioned client work. Client projects
+            are identified by client name. No campaign performance results are claimed unless stated.
           </p>
         </div>
       </section>
