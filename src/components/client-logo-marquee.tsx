@@ -22,6 +22,7 @@ function LogoGroup({ copy = false }: { copy?: boolean }) {
 export function ClientLogoMarquee() {
   return (
     <section className="client-logo-section" aria-label="Our clients">
+
       <div className="container client-logo-heading">
         <span className="eyebrow">Trusted partnerships</span>
         <p>Some of the people and organisations we’re proud to work with.</p>
