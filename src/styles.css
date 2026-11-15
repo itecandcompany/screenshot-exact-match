@@ -788,3 +788,35 @@ h4 {
     transition: none;
   }
 }
+
+
+/* Persistent WhatsApp contact button: bottom-right on every page. */
+.whatsapp-float {
+  position: fixed !important;
+  right: max(20px, env(safe-area-inset-right)) !important;
+  bottom: max(20px, env(safe-area-inset-bottom)) !important;
+  z-index: 1000 !important;
+  display: inline-flex !important;
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px;
+  min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.24);
+}
+.whatsapp-float svg {
+  width: 25px;
+  height: 25px;
+}
+@media (max-width: 600px) {
+  .whatsapp-float {
+    right: max(16px, env(safe-area-inset-right)) !important;
+    bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    width: 54px !important;
+    height: 54px !important;
+    min-width: 54px;
+    min-height: 54px;
+  }
+}
