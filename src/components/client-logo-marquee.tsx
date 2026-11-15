@@ -1,27 +1,27 @@
 const clientLogos = [
   {
     name: "Kijuu Gas",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/kijuu%20gas%20.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/kijuu%20gas%20.png",
   },
   {
     name: "NEXTDOOR ADS",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/nextdor%20adds.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/nextdor%20adds.png",
   },
   {
     name: "Nexora",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/nextora%20logo.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/nextora%20logo.png",
   },
   {
     name: "Elimu Tech",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/elimu%20tech.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/elimu%20tech.png",
   },
   {
     name: "E3 Empower",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/e3%20empower%20logo%20.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/e3%20empower%20logo%20.png",
   },
   {
     name: "Genesis Venace Fukuru Co.",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/genesis-venace-fukuru%20co.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/genesis-venace-fukuru%20co.png",
   },
 ];
 
