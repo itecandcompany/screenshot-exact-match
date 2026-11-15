@@ -111,7 +111,7 @@ export function SiteFooter() {
         </div>
       </div>
       {/^\d{8,15}$/.test(site.whatsapp) && (
-        <Button asChild variant="agency" className="fixed bottom-6 right-6 z-30" size="icon">
+        <Button asChild variant="agency" className="whatsapp-float" size="icon">
           <a
             href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent("Hello NEXTDOOR ADS, I'd like to discuss a project.")}`}
             aria-label="Contact on WhatsApp"
