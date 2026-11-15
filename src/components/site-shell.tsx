@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, ArrowUpRight, MessageCircle } from "lucide-react";
+import { Menu, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -118,7 +118,9 @@ export function SiteFooter() {
             target="_blank"
             rel="noreferrer"
           >
-            <MessageCircle />
+            <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true" focusable="false" className="whatsapp-brand-mark">
+              <path fill="currentColor" d="M16.04 2.67A13.22 13.22 0 0 0 4.7 22.7L3 29l6.47-1.66a13.3 13.3 0 0 0 6.56 1.72h.01a13.2 13.2 0 0 0 0-26.39Zm0 23.96h-.01a10.9 10.9 0 0 1-5.55-1.52l-.4-.24-3.84.99 1.02-3.74-.26-.41a10.77 10.77 0 1 1 9.04 4.92Zm5.92-8.08c-.32-.16-1.9-.94-2.2-1.05-.3-.11-.51-.16-.73.16-.21.32-.83 1.05-1.02 1.27-.19.21-.38.24-.7.08-.32-.16-1.36-.5-2.59-1.6-.96-.86-1.61-1.92-1.8-2.24-.19-.32-.02-.49.14-.65.14-.14.32-.38.48-.57.16-.19.21-.32.32-.54.11-.21.05-.4-.03-.56-.08-.16-.73-1.76-1-2.41-.26-.63-.53-.54-.73-.55h-.62c-.21 0-.56.08-.86.4-.3.32-1.13 1.1-1.13 2.68s1.16 3.11 1.32 3.32c.16.21 2.28 3.48 5.53 4.88.77.33 1.37.53 1.84.68.77.24 1.47.21 2.02.13.62-.09 1.9-.78 2.17-1.54.27-.75.27-1.4.19-1.54-.08-.13-.3-.21-.62-.37Z" />
+            </svg>
           </a>
         </Button>
       )}
