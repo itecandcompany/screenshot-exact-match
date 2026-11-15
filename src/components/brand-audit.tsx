@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, LoaderCircle, Sparkles, Target, Video, Image as ImageIcon } from "lucide-react";
 
 type Audit = {
@@ -48,6 +50,11 @@ export function BrandAudit() {
       setAudit(result.audit);
       setSourceTitle(result.source?.title || result.source?.url || "");
       setSource(result.source || null);
+      sessionStorage.setItem("nextdoor-brand-audit-intake", JSON.stringify({
+        brandUrl,
+        sourceTitle: result.source?.title || result.source?.url || brandUrl,
+        audit: result.audit,
+      }));
       setPoster("");
       setPosterError("");
     } catch (err) {
@@ -224,7 +231,20 @@ export function BrandAudit() {
                 <p className="text-xs text-muted-foreground border-t border-border pt-4">
                   AI-generated first draft based on the public page we could read. Scores are directional creative assessments, not measured campaign performance.
                 </p>
-                <button type="button" onClick={() => { setAudit(null); setBrandUrl(""); }} className="text-sm font-semibold underline underline-offset-4">Audit another brand</button>
+                <div className="rounded-sm border border-primary/30 bg-secondary p-5 space-y-3">
+                  <h4 className="font-bold">Ready to create something for your brand?</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Your audit report will be carried into the project enquiry so our team can review
+                    the website, findings and creative recommendations together.
+                  </p>
+                  <Button asChild variant="forest">
+                    <Link to="/contact">Continue to project form <ArrowRight size={16} /></Link>
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    The report is held in this browser session until you prepare your enquiry email.
+                  </p>
+                </div>
+                <button type="button" onClick={() => { setAudit(null); setBrandUrl(""); sessionStorage.removeItem("nextdoor-brand-audit-intake"); }} className="text-sm font-semibold underline underline-offset-4">Audit another brand</button>
               </div>
             )}
           </div>
