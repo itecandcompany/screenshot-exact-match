@@ -1,6 +1,7 @@
 import { z } from "zod";
 import coffee from "@/assets/sample-coffee.jpg";
 import stem from "@/assets/sample-stem.jpg";
+
 export const categories = [
   "Advertising Posters",
   "Social Media Graphics",
@@ -9,6 +10,7 @@ export const categories = [
   "Events and Campaigns",
   "Product Advertising",
 ] as const;
+
 export const projectSchema = z.object({
   title: z.string().min(1),
   slug: z.string().regex(/^[a-z0-9-]+$/),
@@ -20,8 +22,9 @@ export const projectSchema = z.object({
   servicesProvided: z.array(z.string()),
   projectDate: z.string().nullable(),
   featured: z.boolean(),
-  isSample: z.literal(true),
+  isSample: z.boolean(),
 });
+
 const concepts = [
   ["A Fresh Start", "zawadi-coffee", "Product Advertising", coffee, "Coffee and retail"],
   ["Ideas Into Impact", "stem-festival", "Education and STEM", stem, "Education"],
@@ -29,16 +32,11 @@ const concepts = [
   ["A Brighter Tomorrow", "brighter-tomorrow", "Advertising Posters", stem, "Education"],
   ["Your Daily Inspiration", "daily-inspiration", "Social Media Graphics", coffee, "Retail"],
   ["Create. Connect. Grow.", "creative-gathering", "Events and Campaigns", stem, "Events"],
-  [
-    "Coffee With Purpose",
-    "coffee-with-purpose",
-    "Advertising Posters",
-    coffee,
-    "Food and beverage",
-  ],
+  ["Coffee With Purpose", "coffee-with-purpose", "Advertising Posters", coffee, "Food and beverage"],
   ["The Next Generation", "next-generation", "Social Media Graphics", stem, "Education"],
 ] as const;
-export const projects = concepts.map(([title, slug, category, image, industry], i) =>
+
+const independentConcepts = concepts.map(([title, slug, category, image, industry], i) =>
   projectSchema.parse({
     title,
     slug,
@@ -54,3 +52,43 @@ export const projects = concepts.map(([title, slug, category, image, industry], 
     isSample: true,
   }),
 );
+
+const e3Base = "https://raw.githubusercontent.com/itecandcompany/screenshot-exact-match/main/";
+const e3ClientWork = [
+  projectSchema.parse({
+    title: "Ether Empire Holiday Courses",
+    slug: "e3-empower-ether-empire-holiday-courses",
+    clientName: "E3 Empower",
+    industry: "Education and training",
+    description:
+      "A holiday-courses promotional poster created by NEXTDOOR ADS for E3 Empower. The design presents the Ether Empire Holiday Courses offer as an education-focused campaign visual. This is commissioned client work; campaign reach and enrolment results were not supplied.",
+    images: [{
+      src: e3Base + "Ether%20Empire%20Holiday%20Courses%20Poster-1.png",
+      alt: "Ether Empire Holiday Courses promotional poster designed for E3 Empower",
+    }],
+    category: "Education and STEM",
+    servicesProvided: ["Campaign concept", "Promotional poster design", "Education advertising creative"],
+    projectDate: null,
+    featured: true,
+    isSample: false,
+  }),
+  projectSchema.parse({
+    title: "Exaud Lizer — Empowering Tanzania’s Future",
+    slug: "e3-empower-exaud-lizer-profile-poster",
+    clientName: "E3 Empower",
+    industry: "Education and youth development",
+    description:
+      "A profile-led promotional poster created by NEXTDOOR ADS for E3 Empower. It introduces Exaud Lizer as an intern and trainer and communicates the organisation’s education and empowerment message. This is commissioned client work; no campaign performance figures were provided.",
+    images: [{
+      src: e3Base + "Exaud%20Lizer_%20Empowering%20Tanzania%E2%80%99s%20Future.png",
+      alt: "Exaud Lizer profile poster created for E3 Empower",
+    }],
+    category: "Advertising Posters",
+    servicesProvided: ["Profile-led visual storytelling", "Promotional poster design", "Brand-aligned layout"],
+    projectDate: null,
+    featured: true,
+    isSample: false,
+  }),
+];
+
+export const projects = [...e3ClientWork, ...independentConcepts];
