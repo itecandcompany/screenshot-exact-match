@@ -1,28 +1,10 @@
 const clientLogos = [
-  {
-    name: "Kijuu Gas",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/kijuu%20gas%20.png",
-  },
-  {
-    name: "NEXTDOOR ADS",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/nextdor%20adds.png",
-  },
-  {
-    name: "Nexora",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/nextora%20logo.png",
-  },
-  {
-    name: "Elimu Tech",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/elimu%20tech.png",
-  },
-  {
-    name: "E3 Empower",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/e3%20empower%20logo%20.png",
-  },
-  {
-    name: "Genesis Venace Fukuru Co.",
-    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ec93810d1c93601e236f7890a8235a306e49c886/genesis-venace-fukuru%20co.png",
-  },
+  { name: "Kijuu Gas", src: "/images/kijuu-gas.png" },
+  { name: "NEXTDOOR ADS", src: "/images/nextdoor-ads.png" },
+  { name: "Nexora", src: "/images/nexora.png" },
+  { name: "Elimu Tech", src: "/images/elimu-tech.png" },
+  { name: "E3 Empower", src: "/images/e3-empower.png" },
+  { name: "Genesis Venace Fukuru Co.", src: "/images/genesis-venace-fukuru.png" },
 ];
 
 function LogoGroup({ copy = false }: { copy?: boolean }) {
@@ -30,14 +12,7 @@ function LogoGroup({ copy = false }: { copy?: boolean }) {
     <div className="client-logo-group" aria-hidden={copy || undefined}>
       {clientLogos.map((client) => (
         <div className="client-logo-item" key={client.name}>
-          <img
-            src={client.src}
-            alt={copy ? "" : client.name}
-            loading="eager"
-            decoding="async"
-            width="190"
-            height="66"
-          />
+          <img src={client.src} alt={copy ? "" : client.name} loading="eager" decoding="async" width="190" height="66" />
         </div>
       ))}
     </div>
