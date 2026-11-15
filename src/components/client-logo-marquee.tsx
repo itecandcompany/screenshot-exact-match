@@ -1,27 +1,27 @@
 const clientLogos = [
   {
     name: "Kijuu Gas",
-    src: "https://raw.githubusercontent.com/itecandcompany/screenshot-exact-match/main/kijuu%20gas%20.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/kijuu%20gas%20.png",
   },
   {
     name: "NEXTDOOR ADS",
-    src: "https://raw.githubusercontent.com/itecandcompany/screenshot-exact-match/main/nextdor%20adds.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/nextdor%20adds.png",
   },
   {
     name: "Nexora",
-    src: "https://raw.githubusercontent.com/itecandcompany/screenshot-exact-match/main/nextora%20logo.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/nextora%20logo.png",
   },
   {
     name: "Elimu Tech",
-    src: "https://raw.githubusercontent.com/itecandcompany/screenshot-exact-match/main/elimu%20tech.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/elimu%20tech.png",
   },
   {
     name: "E3 Empower",
-    src: "https://raw.githubusercontent.com/itecandcompany/screenshot-exact-match/main/e3%20empower%20logo%20.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/e3%20empower%20logo%20.png",
   },
   {
     name: "Genesis Venace Fukuru Co.",
-    src: "https://raw.githubusercontent.com/itecandcompany/screenshot-exact-match/main/genesis-venace-fukuru%20co.png",
+    src: "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@main/genesis-venace-fukuru%20co.png",
   },
 ];
 
@@ -30,7 +30,14 @@ function LogoGroup({ copy = false }: { copy?: boolean }) {
     <div className="client-logo-group" aria-hidden={copy || undefined}>
       {clientLogos.map((client) => (
         <div className="client-logo-item" key={client.name}>
-          <img src={client.src} alt={copy ? "" : client.name} loading="lazy" />
+          <img
+            src={client.src}
+            alt={copy ? "" : client.name}
+            loading="eager"
+            decoding="async"
+            width="190"
+            height="66"
+          />
         </div>
       ))}
     </div>
