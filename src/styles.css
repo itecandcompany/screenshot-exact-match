@@ -675,3 +675,73 @@ h4 {
   font-weight: 800;
   letter-spacing: -0.06em;
 }
+
+.e3-portfolio-section {
+  background: var(--background);
+}
+.e3-client-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
+  align-items: end;
+  gap: 32px;
+}
+.e3-project-card {
+  min-width: 0;
+}
+.e3-project-artwork {
+  position: relative;
+  display: flex;
+  min-height: 300px;
+  max-height: 620px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+}
+.e3-project-artwork img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 620px;
+  object-fit: contain;
+  transition: transform 350ms ease;
+}
+.e3-project-artwork:hover img {
+  transform: scale(1.025);
+}
+.e3-artwork-open {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 13px;
+  color: white;
+  background: rgba(15, 25, 20, 0.88);
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.e3-project-artwork:hover .e3-artwork-open,
+.e3-project-artwork:focus-visible .e3-artwork-open {
+  opacity: 1;
+}
+@media (max-width: 700px) {
+  .e3-client-heading {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .e3-project-artwork {
+    min-height: 220px;
+  }
+  .e3-artwork-open {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .e3-project-artwork img {
+    transition: none;
+  }
+}
