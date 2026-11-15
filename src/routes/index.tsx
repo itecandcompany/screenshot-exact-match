@@ -24,6 +24,7 @@ import {
 import { projects } from "@/content/portfolio";
 import { seo } from "@/content/site";
 import { BrandAudit } from "@/components/brand-audit";
+import { ClientLogoMarquee } from "@/components/client-logo-marquee";
 export const Route = createFileRoute("/")({
   head: () => ({
     ...seo(
@@ -116,6 +117,7 @@ function Index() {
           ))}
         </div>
       </div>
+      <ClientLogoMarquee />
       <section id="creative" className="section">
         <div className="container grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
           <div>
