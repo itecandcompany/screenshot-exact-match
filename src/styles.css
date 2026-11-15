@@ -154,15 +154,55 @@
 }
 
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
     border-color: var(--color-border);
   }
 
+  html {
+    width: 100%;
+    min-width: 320px;
+    overflow-x: clip;
+    scroll-behavior: smooth;
+  }
+
   body {
+    width: 100%;
+    min-width: 320px;
+    max-width: 100%;
+    overflow-x: clip;
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     margin: 0;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  #main,
+  main,
+  section,
+  .container,
+  .grid > *,
+  .flex > * {
+    min-width: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  a,
+  button {
+    overflow-wrap: anywhere;
   }
 }
 
@@ -176,7 +216,8 @@ h4 {
   font-family: var(--font-display);
 }
 .container {
-  width: min(1240px, calc(100% - 96px));
+  width: min(1240px, calc(100% - clamp(32px, 6vw, 96px)));
+  max-width: 100%;
   margin-inline: auto;
 }
 .site-header {
@@ -533,7 +574,7 @@ h4 {
 }
 @media (max-width: 600px) {
   .container {
-    width: calc(100% - 40px);
+    width: calc(100% - 32px);
   }
   .site-header {
     height: 76px;
@@ -631,8 +672,10 @@ h4 {
   width: max-content;
   animation: client-logo-marquee 24s linear infinite;
 }
-.client-logo-marquee:hover .client-logo-track {
-  animation-play-state: paused;
+/* Keep the logo loop moving even while a pointer is over the marquee. */
+.client-logo-marquee:hover .client-logo-track,
+.client-logo-marquee:focus-within .client-logo-track {
+  animation-play-state: running;
 }
 .client-logo-group {
   display: flex;
