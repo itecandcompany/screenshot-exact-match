@@ -37,9 +37,7 @@ describe("Nextdoor Plus opportunity filters", () => {
 
   it("searches case-insensitively across listing and source details", () => {
     expect(
-      filterOpportunities(opportunities, { search: "CITY MEDIA" }).map(
-        (item) => item.id,
-      ),
+      filterOpportunities(opportunities, { search: "CITY MEDIA" }).map((item) => item.id),
     ).toEqual(["opportunity-2"]);
   });
 
