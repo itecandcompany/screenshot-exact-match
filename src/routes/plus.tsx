@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
+  Trash2,
   Sparkles,
 } from "lucide-react";
 import {
@@ -20,6 +21,7 @@ import {
   listOpportunityActivity,
   listSavedOpportunities,
   loadWorkspace,
+  removeSavedOpportunity,
   saveOpportunity,
   sendPasswordReset,
   setOpportunityFollowUp,
@@ -34,6 +36,7 @@ import {
   type SavedOpportunity,
   type Workspace,
 } from "@/lib/supabase/client";
+import { filterOpportunities } from "@/lib/opportunity-filters";
 
 export const Route = createFileRoute("/plus")({
   head: () => ({
@@ -50,6 +53,12 @@ export const Route = createFileRoute("/plus")({
 });
 
 type AuthMode = "signin" | "signup" | "reset" | "set-password";
+
+function uniqueFilterOptions(values: Array<string | null>) {
+  return Array.from(
+    new Set(values.filter((value): value is string => Boolean(value))),
+  ).sort((a, b) => a.localeCompare(b));
+}
 
 async function hydrateAccount(
   session: AuthSession,
@@ -77,6 +86,9 @@ function NextdoorPlusPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [search, setSearch] = useState("");
+  const [channelFilter, setChannelFilter] = useState("all");
+  const [regionFilter, setRegionFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -117,23 +129,29 @@ function NextdoorPlusPage() {
     [saved],
   );
 
-  const filteredOpportunities = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return opportunities;
-    return opportunities.filter((item) =>
-      [
-        item.title,
-        item.description,
-        item.country,
-        item.region,
-        item.city,
-        item.channel,
-        item.opportunity_type,
-      ]
-        .filter(Boolean)
-        .some((value) => value?.toLowerCase().includes(query)),
-    );
-  }, [opportunities, search]);
+  const channelOptions = useMemo(
+    () => uniqueFilterOptions(opportunities.map((item) => item.channel)),
+    [opportunities],
+  );
+  const regionOptions = useMemo(
+    () => uniqueFilterOptions(opportunities.map((item) => item.region)),
+    [opportunities],
+  );
+  const typeOptions = useMemo(
+    () => uniqueFilterOptions(opportunities.map((item) => item.opportunity_type)),
+    [opportunities],
+  );
+
+  const filteredOpportunities = useMemo(
+    () =>
+      filterOpportunities(opportunities, {
+        search,
+        channel: channelFilter,
+        region: regionFilter,
+        opportunityType: typeFilter,
+      }),
+    [opportunities, search, channelFilter, regionFilter, typeFilter],
+  );
 
   async function handleAuth(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -192,6 +210,24 @@ function NextdoorPlusPage() {
       setNotice("Opportunity saved to your workspace.");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "We could not save this opportunity.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleRemoveSaved(opportunityId: string) {
+    if (!workspace) return;
+    setError("");
+    setNotice("");
+    setSubmitting(true);
+    try {
+      const current = await getSession();
+      if (!current) throw new Error("Your session has expired. Please sign in again.");
+      await removeSavedOpportunity(current, workspace.id, opportunityId);
+      setSaved(await listSavedOpportunities(current, workspace.id));
+      setNotice("Opportunity removed from your shortlist.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "We could not remove this opportunity.");
     } finally {
       setSubmitting(false);
     }
@@ -416,15 +452,66 @@ function NextdoorPlusPage() {
                   <h2 className="mt-1 text-2xl font-black">Discover opportunities</h2>
                   <p className="mt-1 text-sm text-[#718075]">Browse published opportunities and save the ones worth pursuing.</p>
                 </div>
-                <label className="relative block w-full sm:max-w-xs">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a9a8e]" size={17} />
-                  <input
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search opportunities"
-                    className="w-full rounded-xl border border-[#dce5dd] bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-[#4e9466]"
-                  />
-                </label>
+                <div className="w-full space-y-2 sm:max-w-2xl">
+                  <label className="relative block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a9a8e]" size={17} />
+                    <input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Search title, location, channel or source"
+                      className="w-full rounded-xl border border-[#dce5dd] bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-[#4e9466]"
+                    />
+                  </label>
+                  {opportunities.length > 0 && (
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <label className="text-xs font-semibold text-[#718075]">
+                        Channel
+                        <select
+                          value={channelFilter}
+                          onChange={(event) => setChannelFilter(event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-[#dce5dd] bg-white px-3 py-2 text-sm text-[#365b43] outline-none focus:border-[#4e9466]"
+                        >
+                          <option value="all">All channels</option>
+                          {channelOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-xs font-semibold text-[#718075]">
+                        Region
+                        <select
+                          value={regionFilter}
+                          onChange={(event) => setRegionFilter(event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-[#dce5dd] bg-white px-3 py-2 text-sm text-[#365b43] outline-none focus:border-[#4e9466]"
+                        >
+                          <option value="all">All regions</option>
+                          {regionOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-xs font-semibold text-[#718075]">
+                        Opportunity type
+                        <select
+                          value={typeFilter}
+                          onChange={(event) => setTypeFilter(event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-[#dce5dd] bg-white px-3 py-2 text-sm text-[#365b43] outline-none focus:border-[#4e9466]"
+                        >
+                          <option value="all">All types</option>
+                          {typeOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  )}
+                </div>
               </div>
               {filteredOpportunities.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-[#cbd9cd] bg-white px-6 py-12 text-center">
@@ -500,9 +587,20 @@ function NextdoorPlusPage() {
                               {latestStatus && ` · ${latestStatus.replace("_", " ")}`}
                             </p>
                           </div>
-                          <a href={item.opportunities.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
-                            View source <ArrowUpRight size={13} />
-                          </a>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <a href={item.opportunities.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
+                              View source <ArrowUpRight size={13} />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => void handleRemoveSaved(item.opportunity_id)}
+                              disabled={submitting}
+                              aria-label={`Remove ${item.opportunities.title} from saved opportunities`}
+                              className="inline-flex items-center gap-1 rounded-lg border border-[#dce5dd] px-2.5 py-1.5 text-xs font-semibold text-[#617469] transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+                            >
+                              <Trash2 size={13} /> Remove
+                            </button>
+                          </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {(["interested", "applied", "won", "dismissed"] as const).map((status) => (

@@ -40,8 +40,8 @@ The schema was already present before this implementation. The RLS policies are 
 - Password reset request, recovery-token consumption and password update.
 - Browser session persistence, refresh and sign-out.
 - First-login profile and Tanzania workspace provisioning.
-- Published/open opportunity feed with search and source links.
-- Save-to-workspace action.
+- Published/open opportunity feed with search, channel/region/type filters and source links.
+- Save-to-workspace action and remove-from-shortlist control.
 - Private pipeline status events: interested, applied, won and dismissed.
 - Private notes and follow-up-date events.
 - Recent activity timeline for saved opportunities.
@@ -65,9 +65,9 @@ To avoid recursive RLS policy evaluation, workspace membership/ownership checks 
 
 - No published opportunities currently exist in the table. Do not add fabricated listings; build a source-verified ingestion workflow.
 - Verify email confirmation and password recovery end-to-end against the Supabase Auth redirect and SMTP settings.
-- Add automated tests for cross-workspace isolation and all write policies.
+- Add automated tests for cross-workspace isolation and all write policies; client-side opportunity filtering now has unit coverage.
 - Replace the small direct Auth/PostgREST wrapper with `@supabase/supabase-js` once the package and Bun lockfile can be regenerated together.
-- Add workspace profile/settings, opportunity detail pages, filters and a richer overview.
+- Add workspace profile/settings, opportunity detail pages and a richer overview.
 - Run lint, typecheck, tests and production build; complete browser QA.
 
 ## Release safety

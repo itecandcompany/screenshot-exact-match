@@ -406,6 +406,17 @@ export async function updateOpportunityStatus(
   });
 }
 
+export async function removeSavedOpportunity(
+  session: AuthSession,
+  workspaceId: string,
+  opportunityId: string,
+) {
+  await restRequest(
+    `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&saved_by=eq.${session.user.id}`,
+    { method: "DELETE", token: session.access_token },
+  );
+}
+
 export async function addOpportunityNote(
   session: AuthSession,
   workspaceId: string,
