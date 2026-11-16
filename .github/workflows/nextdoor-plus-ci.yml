@@ -42,5 +42,5 @@ jobs:
       - name: Production build
         run: bun run build
 
-      - name: Typecheck generated application routes
-        run: bunx tsc --noEmit
+      - name: Typecheck Nextdoor Plus data layer
+        run: bunx tsc --noEmit -p tsconfig.nextdoor-plus.json

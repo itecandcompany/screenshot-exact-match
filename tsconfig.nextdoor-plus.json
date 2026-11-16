@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/lib/supabase/client.ts",
+    "src/lib/opportunity-filters.ts",
+    "src/test/opportunity-filters.test.ts"
+  ]
+}

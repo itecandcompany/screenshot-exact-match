@@ -1,6 +1,20 @@
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+const supabaseUrl = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
+const supabaseKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
 const storageKey = "nextdoor-plus.auth.session";
+
+interface JsonObject extends JsonObject {
+  access_token?: unknown;
+  refresh_token?: unknown;
+  user?: unknown;
+  id?: unknown;
+  email?: unknown;
+  expires_in?: unknown;
+  expires_at?: unknown;
+  msg?: unknown;
+  message?: unknown;
+  details?: unknown;
+  session?: unknown;
+}
 
 export interface AuthUser {
   id: string;
@@ -82,7 +96,7 @@ function readSession(): AuthSession | null {
   }
 }
 
-function normaliseSession(value: Record<string, unknown>): AuthSession | null {
+function normaliseSession(value: JsonObject): AuthSession | null {
   if (
     typeof value.access_token !== "string" ||
     typeof value.refresh_token !== "string" ||
@@ -91,7 +105,7 @@ function normaliseSession(value: Record<string, unknown>): AuthSession | null {
   ) {
     return null;
   }
-  const user = value.user as Record<string, unknown>;
+  const user = value.user as JsonObject;
   if (typeof user.id !== "string") return null;
   const expiresIn = typeof value.expires_in === "number" ? value.expires_in : 3600;
   return {
@@ -99,11 +113,14 @@ function normaliseSession(value: Record<string, unknown>): AuthSession | null {
     refresh_token: value.refresh_token,
     expires_at:
       typeof value.expires_at === "number" ? value.expires_at : Math.floor(Date.now() / 1000) + expiresIn,
-    user: { id: user.id, email: typeof user.email === "string" ? user.email : undefined },
+    user: {
+      id: user.id,
+      ...(typeof user.email === "string" ? { email: user.email } : {}),
+    },
   };
 }
 
-async function authRequest(path: string, body: Record<string, unknown>) {
+async function authRequest(path: string, body: JsonObject) {
   assertConfigured();
   const response = await fetch(`${supabaseUrl}/auth/v1/${path}`, {
     method: "POST",
@@ -113,7 +130,7 @@ async function authRequest(path: string, body: Record<string, unknown>) {
     },
     body: JSON.stringify(body),
   });
-  const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  const payload = (await response.json().catch(() => ({}))) as JsonObject;
   if (!response.ok) {
     throw new Error(
       typeof payload.msg === "string"
@@ -138,7 +155,7 @@ export async function signUp(email: string, password: string) {
   const payload = await authRequest("signup", { email, password });
   const nested = payload.session;
   const session = normaliseSession(
-    nested && typeof nested === "object" ? (nested as Record<string, unknown>) : payload,
+    nested && typeof nested === "object" ? (nested as JsonObject) : payload,
   );
   if (session) storeSession(session);
   return session;
@@ -166,7 +183,7 @@ export async function consumeRecoverySession(): Promise<AuthSession | null> {
     },
   });
   if (!response.ok) throw new Error("This password reset link is invalid or has expired. Request a new one.");
-  const user = (await response.json()) as Record<string, unknown>;
+  const user = (await response.json()) as JsonObject;
   if (typeof user.id !== "string") throw new Error("The password reset link could not be verified.");
   const session: AuthSession = {
     access_token: accessToken,
@@ -193,7 +210,7 @@ export async function updatePassword(session: AuthSession, password: string) {
     body: JSON.stringify({ password }),
   });
   if (!response.ok) {
-    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    const payload = (await response.json().catch(() => ({}))) as JsonObject;
     throw new Error(typeof payload.message === "string" ? payload.message : "Your password could not be updated.");
   }
 }
@@ -247,14 +264,18 @@ async function restRequest<T>(
     Authorization: `Bearer ${options.token}`,
     "Content-Type": "application/json",
   };
-  if (options.prefer) headers.Prefer = options.prefer;
-  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+  if (options.prefer) headers["Prefer"] = options.prefer;
+  const requestInit: RequestInit = {
     method: options.method ?? "GET",
     headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
+  };
+  if (options.body !== undefined) {
+    const serializedBody = JSON.stringify(options.body);
+    if (serializedBody !== undefined) requestInit.body = serializedBody;
+  }
+  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, requestInit);
   if (!response.ok) {
-    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    const payload = (await response.json().catch(() => ({}))) as JsonObject;
     throw new Error(
       typeof payload.message === "string"
         ? payload.message
