@@ -53,7 +53,8 @@ const independentConcepts = concepts.map(([title, slug, category, image, industr
   }),
 );
 
-const e3Base = "https://raw.githubusercontent.com/itecandcompany/screenshot-exact-match/main/";
+// Pin poster assets to a commit so their URLs do not change with branch updates.
+const e3Base = "https://cdn.jsdelivr.net/gh/itecandcompany/screenshot-exact-match@ad0f46df0f1d156162238f7865bb9587af64ffcb/";
 const e3ClientWork = [
   projectSchema.parse({
     title: "Ether Empire Holiday Courses",
