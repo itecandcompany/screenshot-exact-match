@@ -64,7 +64,7 @@ const e3ClientWork = [
     description:
       "A holiday-courses promotional poster created by NEXTDOOR ADS for E3 Empower. The design presents the Ether Empire Holiday Courses offer as an education-focused campaign visual. This is commissioned client work; campaign reach and enrolment results were not supplied.",
     images: [{
-      src: e3Base + "Ether%20Empire%20Holiday%20Courses%20Poster-1.png",
+      src: e3Base + "ether-empire-holiday-courses.png",
       alt: "Ether Empire Holiday Courses promotional poster designed for E3 Empower",
     }],
     category: "Education and STEM",
@@ -81,7 +81,7 @@ const e3ClientWork = [
     description:
       "A profile-led promotional poster created by NEXTDOOR ADS for E3 Empower. It introduces Exaud Lizer as an intern and trainer and communicates the organisation’s education and empowerment message. This is commissioned client work; no campaign performance figures were provided.",
     images: [{
-      src: e3Base + "Exaud%20Lizer_%20Empowering%20Tanzania%E2%80%99s%20Future.png",
+      src: e3Base + "exaud-lizer-empowering-tanzania.png",
       alt: "Exaud Lizer profile poster created for E3 Empower",
     }],
     category: "Advertising Posters",
