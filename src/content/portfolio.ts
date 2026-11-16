@@ -53,9 +53,9 @@ const independentConcepts = concepts.map(([title, slug, category, image, industr
   }),
 );
 
-// Pin poster assets to a commit so their URLs do not change with branch updates.
-const e3Base = "/portfolio/";
-const e3ClientWork = [
+// Public portfolio artwork is served from the existing /public/portfolio directory.
+const portfolioBase = "/portfolio/";
+const clientProjects = [
   projectSchema.parse({
     title: "Ether Empire Holiday Courses",
     slug: "e3-empower-ether-empire-holiday-courses",
@@ -64,7 +64,7 @@ const e3ClientWork = [
     description:
       "A holiday-courses promotional poster created by NEXTDOOR ADS for E3 Empower. The design presents the Ether Empire Holiday Courses offer as an education-focused campaign visual. This is commissioned client work; campaign reach and enrolment results were not supplied.",
     images: [{
-      src: e3Base + "ether-empire-holiday-courses.png",
+      src: portfolioBase + "ether-empire-holiday-courses.png",
       alt: "Ether Empire Holiday Courses promotional poster designed for E3 Empower",
     }],
     category: "Education and STEM",
@@ -81,7 +81,7 @@ const e3ClientWork = [
     description:
       "A profile-led promotional poster created by NEXTDOOR ADS for E3 Empower. It introduces Exaud Lizer as an intern and trainer and communicates the organisation’s education and empowerment message. This is commissioned client work; no campaign performance figures were provided.",
     images: [{
-      src: e3Base + "exaud-lizer-empowering-tanzania.png",
+      src: portfolioBase + "exaud-lizer-empowering-tanzania.png",
       alt: "Exaud Lizer profile poster created for E3 Empower",
     }],
     category: "Advertising Posters",
@@ -90,6 +90,57 @@ const e3ClientWork = [
     featured: true,
     isSample: false,
   }),
+  projectSchema.parse({
+    title: "Study Smart, Not Harder — Think Index",
+    slug: "index-study-smart-not-harder",
+    clientName: "Index Tanzania",
+    industry: "Education and digital learning",
+    description:
+      "An educational advertising poster built around Index’s “Study Smart, Not Harder. Think Index.” message. The creative presents Index as a learning companion through interactive lessons, progress tracking and student achievement.",
+    images: [{
+      src: portfolioBase + "index-study-smart.png",
+      alt: "Index Tanzania Study Smart, Not Harder — Think Index campaign poster",
+    }],
+    category: "Education and STEM",
+    servicesProvided: ["Campaign concept", "Educational advertising", "Promotional poster design"],
+    projectDate: null,
+    featured: true,
+    isSample: false,
+  }),
+  projectSchema.parse({
+    title: "Master Education with Index",
+    slug: "index-master-education",
+    clientName: "Index Tanzania",
+    industry: "Education and digital learning",
+    description:
+      "A leadership-led brand campaign featuring Index CEO Mohamed Salim Suleiman and the quote “Right Problem Identification, Right Opportunities.” The poster reinforces the Index message of learning, practice and excellence.",
+    images: [{
+      src: portfolioBase + "index-master-education.png",
+      alt: "Index Tanzania Master Education with Index poster featuring CEO Mohamed Salim Suleiman",
+    }],
+    category: "Advertising Posters",
+    servicesProvided: ["Leadership campaign creative", "Brand storytelling", "Promotional poster design"],
+    projectDate: null,
+    featured: true,
+    isSample: false,
+  }),
+  projectSchema.parse({
+    title: "Physics — Explore the Laws of Nature",
+    slug: "index-physics-form-one",
+    clientName: "Index Tanzania",
+    industry: "Education and STEM",
+    description:
+      "A Form 1 Physics promotional poster introducing learners to interactive lessons, practice questions and progress tracking through Index. The visual uses science imagery to make the subject feel engaging and accessible.",
+    images: [{
+      src: portfolioBase + "index-physics-form-1.png",
+      alt: "Index Tanzania Physics Form 1 — Explore the Laws of Nature poster",
+    }],
+    category: "Education and STEM",
+    servicesProvided: ["STEM campaign creative", "Educational advertising", "Promotional poster design"],
+    projectDate: null,
+    featured: true,
+    isSample: false,
+  }),
 ];
 
-export const projects = [...e3ClientWork, ...independentConcepts];
+export const projects = [...clientProjects, ...independentConcepts];

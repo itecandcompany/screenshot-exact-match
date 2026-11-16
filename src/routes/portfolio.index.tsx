@@ -6,14 +6,14 @@ import { PageIntro, ProjectGrid } from "@/components/agency";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 
-const e3Projects = projects.filter((project) => !project.isSample);
+const clientProjects = projects.filter((project) => !project.isSample);
 
 export const Route = createFileRoute("/portfolio/")({
   validateSearch: z.object({ category: z.enum(categories).optional().catch(undefined) }),
   head: () =>
     seo(
       "Portfolio",
-      "Explore client work created for E3 Empower alongside independent NEXTDOOR ADS creative concepts.",
+      "Explore commissioned advertising and creative campaigns for E3 Empower and Index Tanzania, alongside independent NEXTDOOR ADS concepts.",
     ),
   component: Portfolio,
 });
@@ -35,17 +35,17 @@ function Portfolio() {
         <div className="container">
           <div className="e3-client-heading">
             <div>
-              <div className="eyebrow">Client spotlight · E3 Empower</div>
-              <h2 className="section-title">Creative work for E3 Empower.</h2>
+              <div className="eyebrow">Client portfolio · E3 Empower & Index Tanzania</div>
+              <h2 className="section-title">Creative work for our clients.</h2>
             </div>
             <p className="section-copy">
-              These promotional designs were created by NEXTDOOR ADS for our client, E3 Empower.
-              Select a design to view the full artwork.
+              Explore original campaign artwork created by NEXTDOOR ADS for E3 Empower and Index Tanzania.
+              Select any poster to open the full-resolution original.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 mt-10">
-            {e3Projects.map((project) => {
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
+            {clientProjects.map((project) => {
               const image = project.images[0];
               return (
                 <article className="e3-project-card" key={project.slug}>
@@ -59,7 +59,7 @@ function Portfolio() {
                     <img
                       src={image.src}
                       alt={image.alt}
-                      loading="eager"
+                      loading="lazy"
                       decoding="async"
                     />
                     <span className="e3-artwork-open">
