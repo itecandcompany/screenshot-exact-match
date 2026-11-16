@@ -2,7 +2,8 @@ const supabaseUrl = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
 const supabaseKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
 const storageKey = "nextdoor-plus.auth.session";
 
-interface JsonObject extends JsonObject {
+interface JsonObject {
+  [key: string]: unknown;
   access_token?: unknown;
   refresh_token?: unknown;
   user?: unknown;
