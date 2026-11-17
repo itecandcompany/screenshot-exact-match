@@ -1,3 +1,5 @@
+import { normalizeOpportunitySubmission, type OpportunitySubmissionDraft } from "@/lib/opportunity-submissions";
+
 const supabaseUrl = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
 const supabaseKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
 const storageKey = "nextdoor-plus.auth.session";
@@ -66,6 +68,33 @@ export interface SavedOpportunity {
   opportunity_id: string;
   created_at: string;
   opportunities: Opportunity;
+}
+
+export interface OpportunitySubmission {
+  id: string;
+  submitted_by: string;
+  title: string;
+  description: string;
+  country: string;
+  region: string | null;
+  city: string | null;
+  channel: string | null;
+  opportunity_type: string | null;
+  deadline: string | null;
+  source_url: string;
+  source_name: string | null;
+  source_evidence: string;
+  status: "pending" | "approved" | "rejected";
+  review_note: string | null;
+  reviewed_at: string | null;
+  published_opportunity_id: string | null;
+  created_at: string;
+}
+
+export interface OpportunitySubmissionReviewResult {
+  submission_id: string;
+  status: "approved" | "rejected";
+  opportunity_id: string | null;
 }
 
 function assertConfigured() {
@@ -368,6 +397,57 @@ export async function listOpportunityActivity(session: AuthSession, workspaceId:
     `opportunity_activity?workspace_id=eq.${workspaceId}&select=id,opportunity_id,event_type,note,new_status,created_at&order=created_at.desc&limit=200`,
     { token: session.access_token },
   );
+}
+
+export async function isPlatformAdmin(session: AuthSession): Promise<boolean> {
+  const result = await restRequest<boolean>("rpc/is_platform_admin", {
+    method: "POST",
+    token: session.access_token,
+    body: {},
+  });
+  return result === true;
+}
+
+export async function listOpportunitySubmissions(session: AuthSession) {
+  return restRequest<OpportunitySubmission[]>(
+    "opportunity_submissions?select=id,submitted_by,title,description,country,region,city,channel,opportunity_type,deadline,source_url,source_name,source_evidence,status,review_note,reviewed_at,published_opportunity_id,created_at&order=created_at.desc&limit=100",
+    { token: session.access_token },
+  );
+}
+
+export async function submitOpportunity(
+  session: AuthSession,
+  draft: OpportunitySubmissionDraft,
+) {
+  const payload = normalizeOpportunitySubmission(draft);
+  const created = await restRequest<OpportunitySubmission[]>("opportunity_submissions", {
+    method: "POST",
+    token: session.access_token,
+    prefer: "return=representation",
+    body: {
+      ...payload,
+      submitted_by: session.user.id,
+    },
+  });
+  if (!created[0]) throw new Error("Your opportunity suggestion could not be saved.");
+  return created[0];
+}
+
+export async function reviewOpportunitySubmission(
+  session: AuthSession,
+  submissionId: string,
+  decision: "approved" | "rejected",
+  reviewNote = "",
+) {
+  return restRequest<OpportunitySubmissionReviewResult>("rpc/review_opportunity_submission", {
+    method: "POST",
+    token: session.access_token,
+    body: {
+      p_submission_id: submissionId,
+      p_decision: decision,
+      p_review_note: reviewNote.trim() || null,
+    },
+  });
 }
 
 export async function saveOpportunity(

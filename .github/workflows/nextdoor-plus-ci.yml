@@ -31,9 +31,12 @@ jobs:
         run: >-
           bunx eslint
           src/lib/opportunity-filters.ts
+          src/lib/opportunity-submissions.ts
           src/lib/supabase/client.ts
+          src/components/plus-opportunity-intake.tsx
           src/routes/plus.tsx
           src/test/opportunity-filters.test.ts
+          src/test/opportunity-submissions.test.ts
           --rule 'prettier/prettier: off'
 
       - name: Unit tests

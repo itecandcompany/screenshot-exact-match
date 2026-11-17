@@ -3,6 +3,9 @@
   "include": [
     "src/lib/supabase/client.ts",
     "src/lib/opportunity-filters.ts",
-    "src/test/opportunity-filters.test.ts"
+    "src/lib/opportunity-submissions.ts",
+    "src/components/plus-opportunity-intake.tsx",
+    "src/test/opportunity-filters.test.ts",
+    "src/test/opportunity-submissions.test.ts"
   ]
 }

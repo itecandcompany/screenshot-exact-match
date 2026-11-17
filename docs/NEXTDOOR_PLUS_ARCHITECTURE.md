@@ -46,6 +46,9 @@ The schema was already present before this implementation. The RLS policies are 
 - Private notes and follow-up-date events.
 - Recent activity timeline for saved opportunities.
 - Truthful empty state when no published opportunities are available.
+- Member-submitted opportunity intake with required original source URLs and evidence; submissions remain private while pending.
+- Platform-admin review queue with atomic approve-and-publish or reject actions and reviewer notes.
+- Platform administrator identity is held in the non-exposed `private.platform_admins` allowlist; first-admin bootstrap is documented in `docs/NEXTDOOR_PLUS_ADMIN_BOOTSTRAP.md`.
 
 The browser client uses the existing Vercel variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. It does not expose a service-role key.
 
@@ -63,7 +66,8 @@ To avoid recursive RLS policy evaluation, workspace membership/ownership checks 
 
 ## Known gaps and next work
 
-- No published opportunities currently exist in the table. Do not add fabricated listings; build a source-verified ingestion workflow.
+- No published opportunities currently exist in the table. Member submissions are now supported, but an administrator must verify each original source before publication; do not add fabricated listings.
+- The first platform administrator must be provisioned manually after creating and confirming the owner account; see `docs/NEXTDOOR_PLUS_ADMIN_BOOTSTRAP.md`. The Supabase project currently has no auth users, so no admin has been seeded.
 - Verify email confirmation and password recovery end-to-end against the Supabase Auth redirect and SMTP settings.
 - Add automated tests for cross-workspace isolation and all write policies; client-side opportunity filtering now has unit coverage.
 - Replace the small direct Auth/PostgREST wrapper with `@supabase/supabase-js` once the package and Bun lockfile can be regenerated together.

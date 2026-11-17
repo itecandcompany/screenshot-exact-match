@@ -37,6 +37,7 @@ import {
   type Workspace,
 } from "@/lib/supabase/client";
 import { filterOpportunities } from "@/lib/opportunity-filters";
+import { PlusOpportunityIntake } from "@/components/plus-opportunity-intake";
 
 export const Route = createFileRoute("/plus")({
   head: () => ({
@@ -444,6 +445,8 @@ function NextdoorPlusPage() {
                 <div className="rounded-full bg-[#e8f4e8] px-3 py-1.5 text-xs font-bold text-[#286442]">Secure workspace</div>
               </div>
             </section>
+
+            <PlusOpportunityIntake session={session} onRefresh={() => loadAccount(session)} />
 
             <section>
               <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
