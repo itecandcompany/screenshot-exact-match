@@ -61,6 +61,7 @@ RLS is enabled on all six public tables. Policies now ensure:
 - Only open, published opportunities are visible to authenticated users.
 - Saved opportunities and activity are limited to workspace members.
 - Users can create activity only as themselves.
+- Opportunity submissions are private to their submitter and platform administrators; only admin-approved submissions can create published feed records.
 
 To avoid recursive RLS policy evaluation, workspace membership/ownership checks use tightly scoped SECURITY DEFINER helper functions in the non-exposed `private` schema. They are executable by authenticated users only. The exposed review RPC functions use SECURITY INVOKER; admin-only RLS policies authorize publication and review writes. The private administrator allowlist has an explicit deny-client policy and no client table grants.
 
