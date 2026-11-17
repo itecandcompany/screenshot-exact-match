@@ -1,4 +1,6 @@
 import { normalizeOpportunitySubmission, type OpportunitySubmissionDraft } from "@/lib/opportunity-submissions";
+import { ensureFreshSession } from "@/lib/supabase/session-refresh";
+import { buildProfileUpsert } from "@/lib/workspace-profile";
 
 const supabaseUrl = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
 const supabaseKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
@@ -150,6 +152,21 @@ function normaliseSession(value: JsonObject): AuthSession | null {
   };
 }
 
+async function refreshStoredSession(session: AuthSession): Promise<AuthSession> {
+  return ensureFreshSession(session, {
+    read: readSession,
+    store: storeSession,
+    refresh: async (refreshToken) => {
+      const payload = await authRequest("token?grant_type=refresh_token", {
+        refresh_token: refreshToken,
+      });
+      const refreshed = normaliseSession(payload);
+      if (!refreshed) throw new Error("Session refresh returned an invalid response.");
+      return refreshed;
+    },
+  });
+}
+
 async function authRequest(path: string, body: JsonObject) {
   assertConfigured();
   const response = await fetch(`${supabaseUrl}/auth/v1/${path}`, {
@@ -268,16 +285,9 @@ export async function getSession(): Promise<AuthSession | null> {
   assertConfigured();
   const session = readSession();
   if (!session) return null;
-  if (session.expires_at > Math.floor(Date.now() / 1000) + 45) return session;
 
   try {
-    const payload = await authRequest("token?grant_type=refresh_token", {
-      refresh_token: session.refresh_token,
-    });
-    const refreshed = normaliseSession(payload);
-    if (!refreshed) throw new Error("Session refresh returned an invalid response.");
-    storeSession(refreshed);
-    return refreshed;
+    return await refreshStoredSession(session);
   } catch {
     storeSession(null);
     return null;
@@ -286,12 +296,17 @@ export async function getSession(): Promise<AuthSession | null> {
 
 async function restRequest<T>(
   path: string,
-  options: { method?: string; body?: unknown; token: string; prefer?: string },
+  options: { method?: string; body?: unknown; token: string; userId: string; prefer?: string },
 ): Promise<T> {
   assertConfigured();
+  const storedSession = readSession();
+  const activeSession =
+    storedSession?.user.id === options.userId
+      ? await refreshStoredSession(storedSession)
+      : null;
   const headers: Record<string, string> = {
     apikey: supabaseKey as string,
-    Authorization: `Bearer ${options.token}`,
+    Authorization: `Bearer ${activeSession?.access_token ?? options.token}`,
     "Content-Type": "application/json",
   };
   if (options.prefer) headers["Prefer"] = options.prefer;
@@ -323,21 +338,19 @@ export async function loadWorkspace(session: AuthSession, displayName = ""): Pro
   await restRequest("profiles?on_conflict=id", {
     method: "POST",
     token,
+    userId: session.user.id,
     prefer: "resolution=merge-duplicates,return=minimal",
-    body: {
-      id: session.user.id,
-      display_name: displayName || session.user.email?.split("@")[0] || "Member",
-    },
+    body: buildProfileUpsert(session.user.id, displayName),
   });
 
   const [owned, memberships] = await Promise.all([
     restRequest<Workspace[]>(
       `workspaces?owner_id=eq.${session.user.id}&select=id,name,country,market&order=created_at.asc`,
-      { token },
+      { token, userId: session.user.id },
     ),
     restRequest<Array<{ workspace_id: string }>>(
       `workspace_members?user_id=eq.${session.user.id}&select=workspace_id`,
-      { token },
+      { token, userId: session.user.id },
     ),
   ]);
 
@@ -345,7 +358,7 @@ export async function loadWorkspace(session: AuthSession, displayName = ""): Pro
   if (!workspace && memberships[0]) {
     const joined = await restRequest<Workspace[]>(
       `workspaces?id=eq.${memberships[0].workspace_id}&select=id,name,country,market`,
-      { token },
+      { token, userId: session.user.id },
     );
     workspace = joined[0];
   }
@@ -354,10 +367,11 @@ export async function loadWorkspace(session: AuthSession, displayName = ""): Pro
     const created = await restRequest<Workspace[]>("workspaces", {
       method: "POST",
       token,
+    userId: session.user.id,
       prefer: "return=representation",
       body: {
         owner_id: session.user.id,
-        name: `${displayName || session.user.email?.split("@")[0] || "My"} workspace`,
+        name: `${displayName.trim() || session.user.email?.split("@")[0] || "My"} workspace`,
         country: "Tanzania",
         market: "Tanzania",
       },
@@ -370,6 +384,7 @@ export async function loadWorkspace(session: AuthSession, displayName = ""): Pro
     await restRequest("workspace_members", {
       method: "POST",
       token,
+    userId: session.user.id,
       prefer: "resolution=ignore-duplicates,return=minimal",
       body: { workspace_id: workspace.id, user_id: session.user.id, role: "owner" },
     });
@@ -381,21 +396,21 @@ export async function loadWorkspace(session: AuthSession, displayName = ""): Pro
 export async function listOpportunities(session: AuthSession) {
   return restRequest<Opportunity[]>(
     "opportunities?status=eq.open&published_at=not.is.null&select=id,title,description,country,region,city,channel,opportunity_type,eligibility,deadline,source_url,source_name,verified_at&order=verified_at.desc.nullslast&limit=50",
-    { token: session.access_token },
+    { token: session.access_token, userId: session.user.id },
   );
 }
 
 export async function listSavedOpportunities(session: AuthSession, workspaceId: string) {
   return restRequest<SavedOpportunity[]>(
     `saved_opportunities?workspace_id=eq.${workspaceId}&select=id,opportunity_id,created_at,opportunities(id,title,description,country,region,city,channel,opportunity_type,eligibility,deadline,source_url,source_name,verified_at)&order=created_at.desc`,
-    { token: session.access_token },
+    { token: session.access_token, userId: session.user.id },
   );
 }
 
 export async function listOpportunityActivity(session: AuthSession, workspaceId: string) {
   return restRequest<OpportunityActivity[]>(
     `opportunity_activity?workspace_id=eq.${workspaceId}&select=id,opportunity_id,event_type,note,new_status,created_at&order=created_at.desc&limit=200`,
-    { token: session.access_token },
+    { token: session.access_token, userId: session.user.id },
   );
 }
 
@@ -403,6 +418,7 @@ export async function isPlatformAdmin(session: AuthSession): Promise<boolean> {
   const result = await restRequest<boolean>("rpc/is_platform_admin", {
     method: "POST",
     token: session.access_token,
+    userId: session.user.id,
     body: {},
   });
   return result === true;
@@ -411,7 +427,7 @@ export async function isPlatformAdmin(session: AuthSession): Promise<boolean> {
 export async function listOpportunitySubmissions(session: AuthSession) {
   return restRequest<OpportunitySubmission[]>(
     "opportunity_submissions?select=id,submitted_by,title,description,country,region,city,channel,opportunity_type,deadline,source_url,source_name,source_evidence,status,review_note,reviewed_at,published_opportunity_id,created_at&order=created_at.desc&limit=100",
-    { token: session.access_token },
+    { token: session.access_token, userId: session.user.id },
   );
 }
 
@@ -423,6 +439,7 @@ export async function submitOpportunity(
   const created = await restRequest<OpportunitySubmission[]>("opportunity_submissions", {
     method: "POST",
     token: session.access_token,
+    userId: session.user.id,
     prefer: "return=representation",
     body: {
       ...payload,
@@ -442,6 +459,7 @@ export async function reviewOpportunitySubmission(
   return restRequest<OpportunitySubmissionReviewResult>("rpc/review_opportunity_submission", {
     method: "POST",
     token: session.access_token,
+    userId: session.user.id,
     body: {
       p_submission_id: submissionId,
       p_decision: decision,
@@ -457,12 +475,13 @@ export async function saveOpportunity(
 ) {
   const existing = await restRequest<Array<{ id: string }>>(
     `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&select=id&limit=1`,
-    { token: session.access_token },
+    { token: session.access_token, userId: session.user.id },
   );
   if (existing.length) return;
   await restRequest("saved_opportunities", {
     method: "POST",
     token: session.access_token,
+    userId: session.user.id,
     prefer: "return=minimal",
     body: {
       workspace_id: workspaceId,
@@ -473,6 +492,7 @@ export async function saveOpportunity(
   await restRequest("opportunity_activity", {
     method: "POST",
     token: session.access_token,
+    userId: session.user.id,
     prefer: "return=minimal",
     body: {
       workspace_id: workspaceId,
@@ -491,12 +511,13 @@ export async function updateOpportunityStatus(
 ) {
   const saved = await restRequest<Array<{ id: string }>>(
     `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&select=id&limit=1`,
-    { token: session.access_token },
+    { token: session.access_token, userId: session.user.id },
   );
   if (!saved[0]) throw new Error("Save this opportunity to your workspace before changing its status.");
   await restRequest("opportunity_activity", {
     method: "POST",
     token: session.access_token,
+    userId: session.user.id,
     prefer: "return=minimal",
     body: {
       workspace_id: workspaceId,
@@ -515,7 +536,7 @@ export async function removeSavedOpportunity(
 ) {
   await restRequest(
     `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&saved_by=eq.${session.user.id}`,
-    { method: "DELETE", token: session.access_token },
+    { method: "DELETE", token: session.access_token, userId: session.user.id },
   );
 }
 
@@ -527,12 +548,13 @@ export async function addOpportunityNote(
 ) {
   const saved = await restRequest<Array<{ id: string }>>(
     `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&select=id&limit=1`,
-    { token: session.access_token },
+    { token: session.access_token, userId: session.user.id },
   );
   if (!saved[0]) throw new Error("Save this opportunity to your workspace before adding a note.");
   await restRequest("opportunity_activity", {
     method: "POST",
     token: session.access_token,
+    userId: session.user.id,
     prefer: "return=minimal",
     body: {
       workspace_id: workspaceId,
@@ -552,12 +574,13 @@ export async function setOpportunityFollowUp(
 ) {
   const saved = await restRequest<Array<{ id: string }>>(
     `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&select=id&limit=1`,
-    { token: session.access_token },
+    { token: session.access_token, userId: session.user.id },
   );
   if (!saved[0]) throw new Error("Save this opportunity to your workspace before setting a follow-up.");
   await restRequest("opportunity_activity", {
     method: "POST",
     token: session.access_token,
+    userId: session.user.id,
     prefer: "return=minimal",
     body: {
       workspace_id: workspaceId,

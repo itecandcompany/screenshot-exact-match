@@ -39,8 +39,8 @@ The original schema and access policies pre-date this feature branch. The fourth
 - Email/password sign-up and sign-in.
 - Email-confirmation-aware sign-up response.
 - Password reset request, recovery-token consumption and password update.
-- Browser session persistence, refresh and sign-out.
-- First-login profile and Tanzania workspace provisioning.
+- Browser session persistence, expiry-aware access-token refresh before authenticated REST requests, per-account refresh de-duplication, and sign-out.
+- First-login profile and Tanzania workspace provisioning; returning sign-ins no longer overwrite a saved display name with the email prefix.
 - Published/open opportunity feed with search, channel/region/type filters and source links.
 - Save-to-workspace action and remove-from-shortlist control.
 - Private pipeline status events: interested, applied, won and dismissed.
@@ -72,7 +72,7 @@ To avoid recursive RLS policy evaluation, workspace membership/ownership checks 
 - The first platform administrator must be provisioned manually after creating and confirming the owner account; see `docs/NEXTDOOR_PLUS_ADMIN_BOOTSTRAP.md`. The Supabase project currently has no auth users, so no admin has been seeded.
 - Restore the first three original core migration SQL files before using this branch to bootstrap a clean Supabase project; their versions are in database history but their source files are not present here.
 - Verify email confirmation and password recovery end-to-end against the Supabase Auth redirect and SMTP settings.
-- Add automated tests for cross-workspace isolation and all write policies; client-side opportunity filtering now has unit coverage.
+- Add automated tests for cross-workspace isolation and all write policies; client-side filtering, source validation, refresh coordination and profile-upsert behavior now have unit coverage.
 - Replace the small direct Auth/PostgREST wrapper with `@supabase/supabase-js` once the package and Bun lockfile can be regenerated together.
 - Add workspace profile/settings, opportunity detail pages and a richer overview.
 - Run lint, typecheck, tests and production build; complete browser QA.
