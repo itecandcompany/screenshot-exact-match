@@ -241,6 +241,17 @@ export function PlusOpportunityIntake({ session, onRefresh }: PlusOpportunityInt
             />
           </label>
           <label className="text-sm font-semibold md:col-span-2">
+            Eligibility requirements
+            <textarea
+              maxLength={1000}
+              rows={2}
+              value={draft.eligibility}
+              onChange={(event) => updateDraft("eligibility", event.target.value)}
+              className="mt-1.5 w-full rounded-xl border border-[#dce5dd] px-3 py-2.5 font-normal outline-none focus:border-[#4e9466]"
+              placeholder="Who can apply or book this opportunity?"
+            />
+          </label>
+          <label className="text-sm font-semibold md:col-span-2">
             Source evidence (required)
             <textarea
               required
