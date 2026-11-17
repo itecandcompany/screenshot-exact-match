@@ -34,9 +34,13 @@ describe("opportunity submission validation", () => {
     expect(payload.opportunity_type).toBe("Campaign");
   });
 
-  it("rejects non-HTTP source links", () => {
+  it("rejects non-HTTP source links and malformed URLs", () => {
     expect(() =>
       normalizeOpportunitySubmission(makeDraft({ sourceUrl: "javascript:alert(1)" })),
+    ).toThrow("Source links must use HTTP or HTTPS");
+
+    expect(() =>
+      normalizeOpportunitySubmission(makeDraft({ sourceUrl: "not a URL" })),
     ).toThrow("Enter a valid source URL");
   });
 
