@@ -6,7 +6,7 @@ import {
   type SessionRefreshDependencies,
 } from "@/lib/supabase/session-refresh";
 
-interface TestSession extends RefreshableSession {}
+type TestSession = RefreshableSession;
 
 function makeSession(
   userId: string,
@@ -84,6 +84,28 @@ describe("Nextdoor Plus session refresh", () => {
     resolveRefresh(refreshed);
     await expect(Promise.all([first, second])).resolves.toEqual([refreshed, refreshed]);
     expect(state.current).toBe(refreshed);
+  });
+
+  it("uses a session that another request has already refreshed", async () => {
+    const expired = makeSession("member-1", 1000);
+    const alreadyRefreshed = makeSession("member-1", 2400, "access-current", "refresh-current");
+    const refresh = vi.fn(async () => makeSession("member-1", 3600, "access-later", "refresh-later"));
+    const { dependencies } = makeDependencies(alreadyRefreshed, refresh);
+
+    await expect(ensureFreshSession(expired, dependencies, 1000)).resolves.toBe(alreadyRefreshed);
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("rejects a refresh response for a different account", async () => {
+    const session = makeSession("member-1", 1000);
+    const wrongAccount = makeSession("member-2", 2400);
+    const refresh = vi.fn(async () => wrongAccount);
+    const { state, dependencies } = makeDependencies(session, refresh);
+
+    await expect(ensureFreshSession(session, dependencies, 1000)).rejects.toThrow(
+      "Session refresh returned a different account",
+    );
+    expect(state.current).toBe(session);
   });
 
   it("refuses to refresh when the stored session belongs to another account", async () => {

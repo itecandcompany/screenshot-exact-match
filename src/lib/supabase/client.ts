@@ -300,13 +300,13 @@ async function restRequest<T>(
 ): Promise<T> {
   assertConfigured();
   const storedSession = readSession();
-  const activeSession =
-    storedSession?.user.id === options.userId
-      ? await refreshStoredSession(storedSession)
-      : null;
+  if (!storedSession || storedSession.user.id !== options.userId) {
+    throw new Error("Your session is no longer active. Please sign in again.");
+  }
+  const activeSession = await refreshStoredSession(storedSession);
   const headers: Record<string, string> = {
     apikey: supabaseKey as string,
-    Authorization: `Bearer ${activeSession?.access_token ?? options.token}`,
+    Authorization: `Bearer ${activeSession.access_token}`,
     "Content-Type": "application/json",
   };
   if (options.prefer) headers["Prefer"] = options.prefer;
@@ -367,7 +367,7 @@ export async function loadWorkspace(session: AuthSession, displayName = ""): Pro
     const created = await restRequest<Workspace[]>("workspaces", {
       method: "POST",
       token,
-    userId: session.user.id,
+      userId: session.user.id,
       prefer: "return=representation",
       body: {
         owner_id: session.user.id,
@@ -384,7 +384,7 @@ export async function loadWorkspace(session: AuthSession, displayName = ""): Pro
     await restRequest("workspace_members", {
       method: "POST",
       token,
-    userId: session.user.id,
+      userId: session.user.id,
       prefer: "resolution=ignore-duplicates,return=minimal",
       body: { workspace_id: workspace.id, user_id: session.user.id, role: "owner" },
     });
