@@ -9,6 +9,7 @@ export const categories = [
   "Education and STEM",
   "Events and Campaigns",
   "Product Advertising",
+  "Awareness & Impact Campaigns",
 ] as const;
 
 export const projectSchema = z.object({
@@ -137,6 +138,58 @@ const clientProjects = [
     }],
     category: "Education and STEM",
     servicesProvided: ["STEM campaign creative", "Educational advertising", "Promotional poster design"],
+    projectDate: null,
+    featured: true,
+    isSample: false,
+  }),
+
+  projectSchema.parse({
+    title: "From Farms to Global Markets",
+    slug: "nurusafe-from-farms-to-global-markets",
+    clientName: "NuruSafe Packing House",
+    industry: "Agriculture, food handling and export readiness",
+    description:
+      "An awareness-focused campaign visual communicating the journey from local farms towards wider markets. The creative positions NuruSafe Packing House within the agricultural value chain and helps audiences recognise the importance of organised packing and market access.",
+    images: [{
+      src: portfolioBase + "nurusafe-from-farms-to-global-markets.png",
+      alt: "NuruSafe Packing House awareness poster — From Farms to Global Markets",
+    }],
+    category: "Awareness & Impact Campaigns",
+    servicesProvided: ["Awareness campaign creative", "Agribusiness communication", "Poster design"],
+    projectDate: null,
+    featured: true,
+    isSample: false,
+  }),
+  projectSchema.parse({
+    title: "Freshness for Global Markets",
+    slug: "nurusafe-freshness-for-global-markets",
+    clientName: "NuruSafe Packing House",
+    industry: "Agriculture, food handling and export readiness",
+    description:
+      "An awareness advertisement highlighting freshness and the quality expectations associated with supplying produce to broader markets. Designed to build recognition for NuruSafe Packing House and its role in the produce packing journey.",
+    images: [{
+      src: portfolioBase + "nurusafe-freshness-for-global-markets.png",
+      alt: "NuruSafe Packing House awareness poster — Freshness for Global Markets",
+    }],
+    category: "Awareness & Impact Campaigns",
+    servicesProvided: ["Awareness campaign creative", "Agribusiness communication", "Poster design"],
+    projectDate: null,
+    featured: true,
+    isSample: false,
+  }),
+  projectSchema.parse({
+    title: "Quality Today, Prosperity Tomorrow",
+    slug: "nurusafe-quality-today-prosperity-tomorrow",
+    clientName: "NuruSafe Packing House",
+    industry: "Agriculture, food handling and export readiness",
+    description:
+      "An awareness-led poster connecting consistent quality with long-term prosperity for the agricultural value chain. The creative supports NuruSafe Packing House's partner communications and public awareness.",
+    images: [{
+      src: portfolioBase + "nurusafe-quality-today-prosperity-tomorrow.png",
+      alt: "NuruSafe Packing House awareness poster — Quality Today, Prosperity Tomorrow",
+    }],
+    category: "Awareness & Impact Campaigns",
+    servicesProvided: ["Awareness campaign creative", "Agribusiness communication", "Poster design"],
     projectDate: null,
     featured: true,
     isSample: false,
