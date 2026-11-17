@@ -21,7 +21,7 @@ Development lives on `feature/nextdoor-plus`. The `main` branch remains the prod
 
 ## Existing Supabase schema
 
-The existing Supabase project is `nextdoor-ads` (`tptxzsynpiiewxmketob`). It contains six tables:
+The existing Supabase project is `nextdoor-ads` (`tptxzsynpiiewxmketob`). It contains six original core tables plus the opportunity intake table:
 
 - `profiles`: authenticated user profile.
 - `workspaces`: customer workspaces.
@@ -29,8 +29,9 @@ The existing Supabase project is `nextdoor-ads` (`tptxzsynpiiewxmketob`). It con
 - `opportunities`: source-backed public listings.
 - `saved_opportunities`: workspace shortlist.
 - `opportunity_activity`: status changes, notes and follow-up events.
+- `opportunity_submissions`: private member suggestions awaiting source review.
 
-The schema was already present before this implementation. The RLS policies are now explicitly versioned in `supabase/migrations/20261114231147_nextdoor_plus_rls_policy_hardening.sql`.
+The original schema and access policies pre-date this feature branch. The fourth original migration is present as `supabase/migrations/20261114231147_nextdoor_plus_rls_policy_hardening.sql`; the first three original migration SQL files are still missing from this branch even though Supabase records them as applied. The new intake, invoker-hardening and index migrations are now named to match the versions recorded in Supabase.
 
 ## Current implementation
 
@@ -54,7 +55,7 @@ The browser client uses the existing Vercel variables `VITE_SUPABASE_URL` and `V
 
 ## Row-level security
 
-RLS is enabled on all six public tables. Policies now ensure:
+RLS is enabled on all seven public tables. The private administrator allowlist also has an explicit deny-client policy and no client table grants. Policies now ensure:
 - Users can read and update only their own profile.
 - Workspace owners and members can access only their workspaces.
 - Membership changes are restricted to self-join for an owned workspace or owner-managed membership.
@@ -69,6 +70,7 @@ To avoid recursive RLS policy evaluation, workspace membership/ownership checks 
 
 - No published opportunities currently exist in the table. Member submissions are now supported, but an administrator must verify each original source before publication; do not add fabricated listings.
 - The first platform administrator must be provisioned manually after creating and confirming the owner account; see `docs/NEXTDOOR_PLUS_ADMIN_BOOTSTRAP.md`. The Supabase project currently has no auth users, so no admin has been seeded.
+- Restore the first three original core migration SQL files before using this branch to bootstrap a clean Supabase project; their versions are in database history but their source files are not present here.
 - Verify email confirmation and password recovery end-to-end against the Supabase Auth redirect and SMTP settings.
 - Add automated tests for cross-workspace isolation and all write policies; client-side opportunity filtering now has unit coverage.
 - Replace the small direct Auth/PostgREST wrapper with `@supabase/supabase-js` once the package and Bun lockfile can be regenerated together.
