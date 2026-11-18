@@ -37,6 +37,7 @@ import {
   type Workspace,
 } from "@/lib/supabase/client";
 import { filterOpportunities } from "@/lib/opportunity-filters";
+import { getSafeExternalUrl } from "@/lib/safe-external-url";
 import { PlusOpportunityIntake } from "@/components/plus-opportunity-intake";
 
 export const Route = createFileRoute("/plus")({
@@ -532,7 +533,9 @@ function NextdoorPlusPage() {
                 </div>
               ) : (
                 <div className="grid gap-4 lg:grid-cols-2">
-                  {filteredOpportunities.map((item) => (
+                  {filteredOpportunities.map((item) => {
+                    const sourceUrl = getSafeExternalUrl(item.source_url);
+                    return (
                     <article key={item.id} className="rounded-2xl border border-[#dfe8e0] bg-white p-5 shadow-sm">
                       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#66816e]">
                         {item.channel && <span className="rounded-full bg-[#edf5ed] px-2.5 py-1">{item.channel}</span>}
@@ -546,9 +549,13 @@ function NextdoorPlusPage() {
                           {item.verified_at && <span className="block mt-1">Verified {new Date(item.verified_at).toLocaleDateString()}</span>}
                         </div>
                         <div className="flex items-center gap-2">
-                          <a href={item.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
-                            Source <ArrowUpRight size={13} />
-                          </a>
+                          {sourceUrl ? (
+                            <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
+                              Source <ArrowUpRight size={13} />
+                            </a>
+                          ) : (
+                            <span className="text-xs text-[#8a9a8e]">Source unavailable</span>
+                          )}
                           <button
                             type="button"
                             onClick={() => void handleSave(item)}
@@ -560,7 +567,8 @@ function NextdoorPlusPage() {
                         </div>
                       </div>
                     </article>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>
@@ -578,6 +586,7 @@ function NextdoorPlusPage() {
               ) : (
                 <div className="divide-y divide-[#edf1ed]">
                   {saved.map((item) => {
+                    const sourceUrl = getSafeExternalUrl(item.opportunities.source_url);
                     const history = activity.filter((event) => event.opportunity_id === item.opportunity_id);
                     const latestStatus = history.find((event) => event.event_type === "status_changed")?.new_status;
                     return (
@@ -591,9 +600,13 @@ function NextdoorPlusPage() {
                             </p>
                           </div>
                           <div className="flex flex-wrap items-center gap-3">
-                            <a href={item.opportunities.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
-                              View source <ArrowUpRight size={13} />
-                            </a>
+                            {sourceUrl ? (
+                              <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
+                                View source <ArrowUpRight size={13} />
+                              </a>
+                            ) : (
+                              <span className="text-xs text-[#8a9a8e]">Source unavailable</span>
+                            )}
                             <button
                               type="button"
                               onClick={() => void handleRemoveSaved(item.opportunity_id)}

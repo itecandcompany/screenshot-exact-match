@@ -41,7 +41,7 @@ The original schema and access policies pre-date this feature branch. The fourth
 - Password reset request, recovery-token consumption and password update.
 - Browser session persistence, expiry-aware access-token refresh before authenticated REST requests, per-account refresh de-duplication, and sign-out.
 - First-login profile and Tanzania workspace provisioning; returning sign-ins no longer overwrite a saved display name with the email prefix.
-- Published/open opportunity feed with search, channel/region/type filters and source links.
+- Published/open opportunity feed with search, channel/region/type filters and source links. Every source URL is revalidated as an absolute HTTP(S) URL before rendering; credential-bearing and non-web protocols are never exposed as clickable links.
 - Save-to-workspace action and remove-from-shortlist control.
 - Private pipeline status events: interested, applied, won and dismissed.
 - Private notes and follow-up-date events.

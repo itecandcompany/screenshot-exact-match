@@ -9,6 +9,7 @@ import {
   type OpportunitySubmission,
 } from "@/lib/supabase/client";
 import type { OpportunitySubmissionDraft } from "@/lib/opportunity-submissions";
+import { getSafeExternalUrl } from "@/lib/safe-external-url";
 
 const emptyDraft: OpportunitySubmissionDraft = {
   title: "",
@@ -305,7 +306,9 @@ export function PlusOpportunityIntake({ session, onRefresh }: PlusOpportunityInt
           </div>
         ) : (
           <div className="divide-y divide-[#edf1ed]">
-            {submissions.map((submission) => (
+            {submissions.map((submission) => {
+              const sourceUrl = getSafeExternalUrl(submission.source_url);
+              return (
               <article key={submission.id} className="space-y-3 py-5 first:pt-1 last:pb-1">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -329,9 +332,13 @@ export function PlusOpportunityIntake({ session, onRefresh }: PlusOpportunityInt
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs">
-                  <a href={submission.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-bold text-[#286442] hover:underline">
-                    Open original source <ArrowUpRight size={13} />
-                  </a>
+                  {sourceUrl ? (
+                    <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-[#286442] hover:underline">
+                      Open original source <ArrowUpRight size={13} />
+                    </a>
+                  ) : (
+                    <span className="text-[#8a9a8e]">Source URL unavailable</span>
+                  )}
                   {submission.published_opportunity_id && (
                     <span className="text-[#617469]">Published to the opportunity feed</span>
                   )}
@@ -382,7 +389,8 @@ export function PlusOpportunityIntake({ session, onRefresh }: PlusOpportunityInt
                   </div>
                 )}
               </article>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
