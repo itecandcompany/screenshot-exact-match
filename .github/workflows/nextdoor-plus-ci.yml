@@ -32,6 +32,7 @@ jobs:
           bunx eslint
           src/lib/opportunity-filters.ts
           src/lib/opportunity-submissions.ts
+          src/lib/safe-external-url.ts
           src/lib/supabase/client.ts
           src/lib/supabase/session-refresh.ts
           src/lib/workspace-profile.ts
@@ -39,6 +40,7 @@ jobs:
           src/routes/plus.tsx
           src/test/opportunity-filters.test.ts
           src/test/opportunity-submissions.test.ts
+          src/test/safe-external-url.test.ts
           src/test/session-refresh.test.ts
           src/test/workspace-profile.test.ts
           --rule 'prettier/prettier: off'
