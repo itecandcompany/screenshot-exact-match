@@ -73,7 +73,7 @@ projectSchema.parse({
     projectDate: null,
     featured: true,
     isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Exaud Lizer — Empowering Tanzania’s Future",
     slug: "e3-empower-exaud-lizer-profile-poster",
@@ -90,7 +90,7 @@ projectSchema.parse({
     projectDate: null,
     featured: true,
     isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Graphic Design Course — Turn Creativity Into Professional Designs",
     slug: "e3-empower-graphic-design-journey",
@@ -101,7 +101,7 @@ projectSchema.parse({
     category: "Education and STEM",
     servicesProvided: ["Course campaign creative", "Promotional poster design", "Education advertising"],
     projectDate: null, featured: true, isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Graphics Design Course",
     slug: "e3-empower-graphics-design-course",
@@ -112,7 +112,7 @@ projectSchema.parse({
     category: "Education and STEM",
     servicesProvided: ["Course campaign creative", "Promotional poster design", "Brand-aligned layout"],
     projectDate: null, featured: true, isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Meet Mr. Edwin Masanta",
     slug: "e3-empower-edwin-masanta",
@@ -123,7 +123,7 @@ projectSchema.parse({
     category: "Education and STEM",
     servicesProvided: ["Staff spotlight design", "Profile-led visual storytelling", "Brand-aligned poster"],
     projectDate: null, featured: true, isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Meet Mr. Philip",
     slug: "e3-empower-philip",
@@ -134,7 +134,7 @@ projectSchema.parse({
     category: "Education and STEM",
     servicesProvided: ["Staff spotlight design", "Profile-led visual storytelling", "Brand-aligned poster"],
     projectDate: null, featured: true, isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Holiday Robotics Course — Ages 8–13",
     slug: "e3-empower-holiday-robotics-course-flyer",
@@ -145,7 +145,7 @@ projectSchema.parse({
     category: "Education and STEM",
     servicesProvided: ["STEM campaign creative", "Course flyer design", "Promotional layout"],
     projectDate: null, featured: true, isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Holiday Robotics Course — Build a Smarter Future",
     slug: "e3-empower-holiday-robotics-course-poster",
@@ -156,7 +156,7 @@ projectSchema.parse({
     category: "Education and STEM",
     servicesProvided: ["STEM campaign creative", "Course poster design", "Education advertising"],
     projectDate: null, featured: true, isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Meet Stephanie",
     slug: "e3-empower-stephanie-staff-spotlight",
@@ -167,7 +167,7 @@ projectSchema.parse({
     category: "Education and STEM",
     servicesProvided: ["Staff spotlight design", "Profile-led visual storytelling", "Brand-aligned poster"],
     projectDate: null, featured: true, isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "December Holiday Creative Skills Courses",
     slug: "e3-empower-december-holiday-creative-courses",
@@ -178,7 +178,7 @@ projectSchema.parse({
     category: "Education and STEM",
     servicesProvided: ["Multi-course campaign creative", "Promotional poster design", "Education advertising"],
     projectDate: null, featured: true, isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "From Farms to Global Markets",
     slug: "nurusafe-from-farms-to-global-markets",
@@ -195,7 +195,7 @@ projectSchema.parse({
     projectDate: null,
     featured: true,
     isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Freshness for Global Markets",
     slug: "nurusafe-freshness-for-global-markets",
@@ -212,7 +212,7 @@ projectSchema.parse({
     projectDate: null,
     featured: true,
     isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Quality Today, Prosperity Tomorrow",
     slug: "nurusafe-quality-today-prosperity-tomorrow",
@@ -229,7 +229,7 @@ projectSchema.parse({
     projectDate: null,
     featured: true,
     isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Study Smart, Not Harder — Think Index",
     slug: "index-study-smart-not-harder",
@@ -246,7 +246,7 @@ projectSchema.parse({
     projectDate: null,
     featured: true,
     isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Master Education with Index",
     slug: "index-master-education",
@@ -263,7 +263,7 @@ projectSchema.parse({
     projectDate: null,
     featured: true,
     isSample: false,
-  }),,
+  }),
 projectSchema.parse({
     title: "Physics — Explore the Laws of Nature",
     slug: "index-physics-form-one",
