@@ -51,5 +51,8 @@ jobs:
       - name: Production build
         run: bun run build
 
+      - name: Guard the public client bundle against server credentials
+        run: bun run check:nextdoor-plus-public-bundle
+
       - name: Typecheck Nextdoor Plus data layer
         run: bunx tsc --noEmit -p tsconfig.nextdoor-plus.json
