@@ -36,6 +36,8 @@ jobs:
           src/lib/supabase/client.ts
           src/lib/supabase/session-refresh.ts
           src/lib/workspace-profile.ts
+          src/lib/workspace-profile-settings.ts
+          src/components/plus-workspace-profile.tsx
           src/components/plus-opportunity-intake.tsx
           src/routes/plus.tsx
           src/test/opportunity-filters.test.ts
@@ -43,6 +45,7 @@ jobs:
           src/test/safe-external-url.test.ts
           src/test/session-refresh.test.ts
           src/test/workspace-profile.test.ts
+          src/test/workspace-profile-settings.test.ts
           --rule 'prettier/prettier: off'
 
       - name: Unit tests

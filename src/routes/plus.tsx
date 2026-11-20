@@ -39,6 +39,7 @@ import {
 import { filterOpportunities } from "@/lib/opportunity-filters";
 import { getSafeExternalUrl } from "@/lib/safe-external-url";
 import { PlusOpportunityIntake } from "@/components/plus-opportunity-intake";
+import { PlusWorkspaceProfile } from "@/components/plus-workspace-profile";
 
 export const Route = createFileRoute("/plus")({
   head: () => ({
@@ -446,6 +447,8 @@ function NextdoorPlusPage() {
                 <div className="rounded-full bg-[#e8f4e8] px-3 py-1.5 text-xs font-bold text-[#286442]">Secure workspace</div>
               </div>
             </section>
+
+            <PlusWorkspaceProfile session={session} />
 
             <PlusOpportunityIntake session={session} onRefresh={() => loadAccount(session)} />
 

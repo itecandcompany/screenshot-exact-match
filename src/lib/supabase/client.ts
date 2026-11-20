@@ -1,6 +1,7 @@
 import { normalizeOpportunitySubmission, type OpportunitySubmissionDraft } from "@/lib/opportunity-submissions";
 import { ensureFreshSession } from "@/lib/supabase/session-refresh";
 import { buildProfileUpsert } from "@/lib/workspace-profile";
+import { normalizeWorkspaceProfileDraft, type WorkspaceProfileDraft } from "@/lib/workspace-profile-settings";
 
 const supabaseUrl = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
 const supabaseKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
@@ -38,6 +39,13 @@ export interface Workspace {
   name: string;
   country: string;
   market: string;
+}
+
+export interface WorkspaceProfile {
+  id: string;
+  display_name: string | null;
+  business_name: string | null;
+  phone: string | null;
 }
 
 export interface Opportunity {
@@ -391,6 +399,40 @@ export async function loadWorkspace(session: AuthSession, displayName = ""): Pro
   }
 
   return workspace;
+}
+
+export async function getWorkspaceProfile(session: AuthSession): Promise<WorkspaceProfile> {
+  const profiles = await restRequest<WorkspaceProfile[]>(
+    `profiles?id=eq.${encodeURIComponent(session.user.id)}&select=id,display_name,business_name,phone&limit=1`,
+    { token: session.access_token, userId: session.user.id },
+  );
+  return profiles[0] ?? {
+    id: session.user.id,
+    display_name: null,
+    business_name: null,
+    phone: null,
+  };
+}
+
+export async function updateWorkspaceProfile(
+  session: AuthSession,
+  draft: WorkspaceProfileDraft,
+): Promise<WorkspaceProfile> {
+  const profile = normalizeWorkspaceProfileDraft(draft);
+  const updated = await restRequest<WorkspaceProfile[]>(
+    `profiles?id=eq.${encodeURIComponent(session.user.id)}&select=id,display_name,business_name,phone`,
+    {
+      method: "PATCH",
+      token: session.access_token,
+      userId: session.user.id,
+      prefer: "return=representation",
+      body: profile,
+    },
+  );
+  if (!updated[0]) {
+    throw new Error("Your profile could not be updated. Refresh the workspace and try again.");
+  }
+  return updated[0];
 }
 
 export async function listOpportunities(session: AuthSession) {

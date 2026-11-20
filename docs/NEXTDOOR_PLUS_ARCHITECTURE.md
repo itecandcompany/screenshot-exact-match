@@ -41,6 +41,7 @@ The original schema and access policies pre-date this feature branch. The fourth
 - Password reset request, recovery-token consumption and password update.
 - Browser session persistence, expiry-aware access-token refresh before authenticated REST requests, per-account refresh de-duplication, and sign-out.
 - First-login profile and Tanzania workspace provisioning; returning sign-ins no longer overwrite a saved display name with the email prefix.
+- Self-service business profile settings for display name, business name and contact phone. Reads and updates are scoped to the signed-in user and protected by the existing `profiles` row-level security policies.
 - Published/open opportunity feed with search, channel/region/type filters and source links. Every source URL is revalidated as an absolute HTTP(S) URL before rendering; credential-bearing and non-web protocols are never exposed as clickable links.
 - Save-to-workspace action and remove-from-shortlist control.
 - Private pipeline status events: interested, applied, won and dismissed.
@@ -74,7 +75,7 @@ To avoid recursive RLS policy evaluation, workspace membership/ownership checks 
 - Verify email confirmation and password recovery end-to-end against the Supabase Auth redirect and SMTP settings.
 - Add automated tests for cross-workspace isolation and all write policies; client-side filtering, source validation, refresh coordination and profile-upsert behavior now have unit coverage.
 - Replace the small direct Auth/PostgREST wrapper with `@supabase/supabase-js` once the package and Bun lockfile can be regenerated together.
-- Add workspace profile/settings, opportunity detail pages and a richer overview.
+- Add opportunity detail pages and a richer overview.
 - Run lint, typecheck, tests and production build; complete browser QA.
 
 ## Release safety
