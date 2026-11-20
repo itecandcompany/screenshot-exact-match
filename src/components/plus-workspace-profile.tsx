@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Building2, LoaderCircle, Save, UserRound } from "lucide-react";
 import {
   getWorkspaceProfile,
@@ -23,20 +23,26 @@ export function PlusWorkspaceProfile({ session }: PlusWorkspaceProfileProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const loadedProfileUserId = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
+    const accountChanged = loadedProfileUserId.current !== session.user.id;
+    if (accountChanged) setDraft(emptyDraft);
     setLoading(true);
     setError("");
 
     void getWorkspaceProfile(session)
       .then((profile) => {
         if (!active) return;
-        setDraft({
-          displayName: profile.display_name ?? "",
-          businessName: profile.business_name ?? "",
-          phone: profile.phone ?? "",
-        });
+        if (loadedProfileUserId.current !== session.user.id) {
+          setDraft({
+            displayName: profile.display_name ?? "",
+            businessName: profile.business_name ?? "",
+            phone: profile.phone ?? "",
+          });
+          loadedProfileUserId.current = session.user.id;
+        }
       })
       .catch((cause: unknown) => {
         if (active) {
@@ -50,7 +56,7 @@ export function PlusWorkspaceProfile({ session }: PlusWorkspaceProfileProps) {
     return () => {
       active = false;
     };
-  }, [session.user.id]);
+  }, [session]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
