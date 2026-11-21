@@ -38,6 +38,7 @@ import {
 } from "@/lib/supabase/client";
 import { filterOpportunities } from "@/lib/opportunity-filters";
 import { getSafeExternalUrl } from "@/lib/safe-external-url";
+import { formatOpportunityDate } from "@/lib/opportunity-display";
 import { PlusOpportunityIntake } from "@/components/plus-opportunity-intake";
 import { PlusWorkspaceProfile } from "@/components/plus-workspace-profile";
 
@@ -92,6 +93,7 @@ function NextdoorPlusPage() {
   const [channelFilter, setChannelFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [expandedOpportunityId, setExpandedOpportunityId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -104,6 +106,7 @@ function NextdoorPlusPage() {
     setOpportunities(data.opportunities);
     setSaved(data.saved);
     setActivity(data.activity);
+    setExpandedOpportunityId(null);
   }, []);
 
   useEffect(() => {
@@ -538,6 +541,9 @@ function NextdoorPlusPage() {
                 <div className="grid gap-4 lg:grid-cols-2">
                   {filteredOpportunities.map((item) => {
                     const sourceUrl = getSafeExternalUrl(item.source_url);
+                    const isExpanded = expandedOpportunityId === item.id;
+                    const deadline = formatOpportunityDate(item.deadline);
+                    const verifiedAt = formatOpportunityDate(item.verified_at);
                     return (
                     <article key={item.id} className="rounded-2xl border border-[#dfe8e0] bg-white p-5 shadow-sm">
                       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#66816e]">
@@ -545,13 +551,52 @@ function NextdoorPlusPage() {
                         {item.city && <span>{item.city}{item.region ? `, ${item.region}` : ""}</span>}
                       </div>
                       <h3 className="mt-3 text-lg font-black">{item.title}</h3>
-                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#718075]">{item.description}</p>
+                      <p className={`mt-2 text-sm leading-6 text-[#718075] ${isExpanded ? "" : "line-clamp-3"}`}>{item.description}</p>
+                      <div
+                        id={`opportunity-details-${item.id}`}
+                        role="region"
+                        aria-label={`Details for ${item.title}`}
+                        hidden={!isExpanded}
+                        className="mt-4 rounded-xl bg-[#f6f8f5] p-4"
+                      >
+                        <dl className="grid gap-3 text-sm sm:grid-cols-2">
+                          <div>
+                            <dt className="text-xs font-semibold uppercase tracking-wide text-[#7a887e]">Location</dt>
+                            <dd className="mt-1 font-medium text-[#365b43]">{[item.city, item.region, item.country].filter(Boolean).join(", ")}</dd>
+                          </div>
+                          {item.opportunity_type && <div>
+                            <dt className="text-xs font-semibold uppercase tracking-wide text-[#7a887e]">Opportunity type</dt>
+                            <dd className="mt-1 font-medium text-[#365b43]">{item.opportunity_type}</dd>
+                          </div>}
+                          {deadline && <div>
+                            <dt className="text-xs font-semibold uppercase tracking-wide text-[#7a887e]">Deadline · Tanzania time</dt>
+                            <dd className="mt-1 font-medium text-[#365b43]">{deadline}</dd>
+                          </div>}
+                          {verifiedAt && <div>
+                            <dt className="text-xs font-semibold uppercase tracking-wide text-[#7a887e]">Last verified</dt>
+                            <dd className="mt-1 font-medium text-[#365b43]">{verifiedAt}</dd>
+                          </div>}
+                        </dl>
+                        {item.eligibility && <div className="mt-4 border-t border-[#e3ebe3] pt-3">
+                          <h4 className="text-xs font-bold uppercase tracking-wide text-[#7a887e]">Eligibility</h4>
+                          <p className="mt-1 whitespace-pre-line text-sm leading-6 text-[#365b43]">{item.eligibility}</p>
+                        </div>}
+                      </div>
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#edf1ed] pt-4">
                         <div className="text-xs text-[#7a887e]">
                           {item.source_name ? `Source: ${item.source_name}` : "Source details available"}
-                          {item.verified_at && <span className="block mt-1">Verified {new Date(item.verified_at).toLocaleDateString()}</span>}
+                          {verifiedAt && <span className="block mt-1">Verified {verifiedAt}</span>}
                         </div>
                         <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            aria-expanded={isExpanded}
+                            aria-controls={`opportunity-details-${item.id}`}
+                            onClick={() => setExpandedOpportunityId((current) => current === item.id ? null : item.id)}
+                            className="rounded-lg border border-[#dce5dd] px-3 py-2 text-xs font-bold text-[#286442] transition hover:bg-[#edf5ed]"
+                          >
+                            {isExpanded ? "Hide details" : "View details"}
+                          </button>
                           {sourceUrl ? (
                             <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
                               Source <ArrowUpRight size={13} />
