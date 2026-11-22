@@ -42,7 +42,7 @@ jobs:
           src/components/plus-workspace-profile.tsx
           src/components/plus-opportunity-intake.tsx
           src/routes/plus.tsx
-          src/routes/plus_.opportunities.$opportunityId.tsx
+          'src/routes/plus_.opportunities.$opportunityId.tsx'
           src/test/opportunity-filters.test.ts
           src/test/opportunity-display.test.ts
           src/test/opportunity-detail.test.ts
