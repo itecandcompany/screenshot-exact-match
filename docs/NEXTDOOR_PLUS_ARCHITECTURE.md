@@ -45,6 +45,7 @@ The original schema and access policies pre-date this feature branch. The fourth
 - Published/open opportunity feed with search, channel/region/type filters and source links. Every source URL is revalidated as an absolute HTTP(S) URL before rendering; credential-bearing and non-web protocols are never exposed as clickable links.
 - Accessible inline opportunity detail disclosures expand the full description and show location, opportunity type, eligibility, deadline and verification timestamp. Date/time values are formatted in Africa/Dar_es_Salaam time.
 - Shareable `/plus/opportunities/:opportunityId` detail pages load only after a valid authenticated session and retrieve only open, published records. The feed and saved shortlist link to the same detail page; source links are revalidated before rendering.
+- The detail page uses TanStack Router's non-nested `plus_` file-route convention, so it renders independently instead of being incorrectly wrapped by the existing `/plus` leaf page.
 - Save-to-workspace action and remove-from-shortlist control.
 - Private pipeline status events: interested, applied, won and dismissed.
 - Private notes and follow-up-date events.
