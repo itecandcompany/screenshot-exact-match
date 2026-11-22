@@ -4,7 +4,7 @@ export function formatOpportunityDate(value: string | null | undefined): string 
   const timestamp = Date.parse(value);
   if (!Number.isFinite(timestamp)) return null;
 
-  const hasTime = /T\\d{2}:\\d{2}/.test(value);
+  const hasTime = /T\d{2}:\d{2}/.test(value);
   const options: Intl.DateTimeFormatOptions = hasTime
     ? { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Dar_es_Salaam" }
     : { dateStyle: "medium", timeZone: "Africa/Dar_es_Salaam" };
