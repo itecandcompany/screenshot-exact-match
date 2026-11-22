@@ -1,7 +1,6 @@
 {
   "extends": "./tsconfig.json",
   "include": [
-    "src/routeTree.gen.ts",
     "src/lib/supabase/client.ts",
     "src/lib/supabase/session-refresh.ts",
     "src/lib/workspace-profile.ts",
@@ -10,7 +9,6 @@
     "src/lib/opportunity-filters.ts",
     "src/lib/opportunity-display.ts",
     "src/lib/opportunity-detail.ts",
-    "src/routes/plus_.opportunities.$opportunityId.tsx",
     "src/test/opportunity-detail.test.ts",
     "src/lib/opportunity-submissions.ts",
     "src/components/plus-opportunity-intake.tsx",
