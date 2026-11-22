@@ -1,4 +1,5 @@
 import { normalizeOpportunitySubmission, type OpportunitySubmissionDraft } from "@/lib/opportunity-submissions";
+import { isOpportunityId } from "@/lib/opportunity-detail";
 import { ensureFreshSession } from "@/lib/supabase/session-refresh";
 import { buildProfileUpsert } from "@/lib/workspace-profile";
 import { normalizeWorkspaceProfileDraft, type WorkspaceProfileDraft } from "@/lib/workspace-profile-settings";
@@ -440,6 +441,19 @@ export async function listOpportunities(session: AuthSession) {
     "opportunities?status=eq.open&published_at=not.is.null&select=id,title,description,country,region,city,channel,opportunity_type,eligibility,deadline,source_url,source_name,verified_at&order=verified_at.desc.nullslast&limit=50",
     { token: session.access_token, userId: session.user.id },
   );
+}
+
+export async function getOpportunityById(
+  session: AuthSession,
+  opportunityId: string,
+): Promise<Opportunity | null> {
+  if (!isOpportunityId(opportunityId)) return null;
+
+  const matches = await restRequest<Opportunity[]>(
+    `opportunities?id=eq.${encodeURIComponent(opportunityId)}&status=eq.open&published_at=not.is.null&select=id,title,description,country,region,city,channel,opportunity_type,eligibility,deadline,source_url,source_name,verified_at&limit=1`,
+    { token: session.access_token, userId: session.user.id },
+  );
+  return matches[0] ?? null;
 }
 
 export async function listSavedOpportunities(session: AuthSession, workspaceId: string) {

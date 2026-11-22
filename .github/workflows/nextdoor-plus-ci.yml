@@ -32,6 +32,7 @@ jobs:
           bunx eslint
           src/lib/opportunity-filters.ts
           src/lib/opportunity-display.ts
+          src/lib/opportunity-detail.ts
           src/lib/opportunity-submissions.ts
           src/lib/safe-external-url.ts
           src/lib/supabase/client.ts
@@ -41,8 +42,10 @@ jobs:
           src/components/plus-workspace-profile.tsx
           src/components/plus-opportunity-intake.tsx
           src/routes/plus.tsx
+          src/routes/plus_.opportunities.$opportunityId.tsx
           src/test/opportunity-filters.test.ts
           src/test/opportunity-display.test.ts
+          src/test/opportunity-detail.test.ts
           src/test/opportunity-submissions.test.ts
           src/test/safe-external-url.test.ts
           src/test/session-refresh.test.ts

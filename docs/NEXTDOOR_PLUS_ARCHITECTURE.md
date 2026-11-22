@@ -44,6 +44,7 @@ The original schema and access policies pre-date this feature branch. The fourth
 - Self-service business profile settings for display name, business name and contact phone. Reads and updates are scoped to the signed-in user and protected by the existing `profiles` row-level security policies.
 - Published/open opportunity feed with search, channel/region/type filters and source links. Every source URL is revalidated as an absolute HTTP(S) URL before rendering; credential-bearing and non-web protocols are never exposed as clickable links.
 - Accessible inline opportunity detail disclosures expand the full description and show location, opportunity type, eligibility, deadline and verification timestamp. Date/time values are formatted in Africa/Dar_es_Salaam time.
+- Shareable `/plus/opportunities/:opportunityId` detail pages load only after a valid authenticated session and retrieve only open, published records. The feed and saved shortlist link to the same detail page; source links are revalidated before rendering.
 - Save-to-workspace action and remove-from-shortlist control.
 - Private pipeline status events: interested, applied, won and dismissed.
 - Private notes and follow-up-date events.
@@ -76,7 +77,7 @@ To avoid recursive RLS policy evaluation, workspace membership/ownership checks 
 - Verify email confirmation and password recovery end-to-end against the Supabase Auth redirect and SMTP settings.
 - Add automated tests for cross-workspace isolation and all write policies; client-side filtering, source validation, refresh coordination and profile-upsert behavior now have unit coverage.
 - Replace the small direct Auth/PostgREST wrapper with `@supabase/supabase-js` once the package and Bun lockfile can be regenerated together.
-- Add shareable, direct-link opportunity detail routes and a richer overview; the current feed provides accessible inline detail disclosures.
+- Build a richer workspace overview with upcoming follow-ups, saved-status summaries and clearer activity grouping. Direct-link detail pages are now implemented.
 - Run lint, typecheck, tests and production build; complete browser QA.
 
 ## Release safety

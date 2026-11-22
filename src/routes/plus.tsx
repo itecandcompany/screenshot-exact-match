@@ -37,6 +37,7 @@ import {
   type Workspace,
 } from "@/lib/supabase/client";
 import { filterOpportunities } from "@/lib/opportunity-filters";
+import { getOpportunityDetailHref } from "@/lib/opportunity-detail";
 import { getSafeExternalUrl } from "@/lib/safe-external-url";
 import { formatOpportunityDate } from "@/lib/opportunity-display";
 import { PlusOpportunityIntake } from "@/components/plus-opportunity-intake";
@@ -544,6 +545,7 @@ function NextdoorPlusPage() {
                     const isExpanded = expandedOpportunityId === item.id;
                     const deadline = formatOpportunityDate(item.deadline);
                     const verifiedAt = formatOpportunityDate(item.verified_at);
+                    const detailHref = getOpportunityDetailHref(item.id);
                     return (
                     <article key={item.id} className="rounded-2xl border border-[#dfe8e0] bg-white p-5 shadow-sm">
                       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#66816e]">
@@ -597,6 +599,11 @@ function NextdoorPlusPage() {
                           >
                             {isExpanded ? "Hide details" : "View details"}
                           </button>
+                          {detailHref && (
+                            <a href={detailHref} className="text-xs font-bold text-[#286442] hover:underline">
+                              Full page <ArrowUpRight size={13} />
+                            </a>
+                          )}
                           {sourceUrl ? (
                             <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
                               Source <ArrowUpRight size={13} />
@@ -635,6 +642,7 @@ function NextdoorPlusPage() {
                 <div className="divide-y divide-[#edf1ed]">
                   {saved.map((item) => {
                     const sourceUrl = getSafeExternalUrl(item.opportunities.source_url);
+                    const detailHref = getOpportunityDetailHref(item.opportunities.id);
                     const history = activity.filter((event) => event.opportunity_id === item.opportunity_id);
                     const latestStatus = history.find((event) => event.event_type === "status_changed")?.new_status;
                     return (
@@ -648,6 +656,11 @@ function NextdoorPlusPage() {
                             </p>
                           </div>
                           <div className="flex flex-wrap items-center gap-3">
+                            {detailHref && (
+                              <a href={detailHref} className="text-xs font-bold text-[#286442] hover:underline">
+                                View details
+                              </a>
+                            )}
                             {sourceUrl ? (
                               <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[#286442] hover:underline">
                                 View source <ArrowUpRight size={13} />
