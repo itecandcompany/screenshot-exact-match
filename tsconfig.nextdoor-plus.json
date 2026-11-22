@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "include": [
+    "src/routeTree.gen.ts",
     "src/lib/supabase/client.ts",
     "src/lib/supabase/session-refresh.ts",
     "src/lib/workspace-profile.ts",
