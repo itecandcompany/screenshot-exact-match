@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  Activity,
   ArrowUpRight,
   Bookmark,
   BriefcaseBusiness,
+  CalendarClock,
   CheckCircle2,
   Compass,
   LogOut,
@@ -40,6 +42,7 @@ import { filterOpportunities } from "@/lib/opportunity-filters";
 import { getOpportunityDetailHref } from "@/lib/opportunity-detail";
 import { getSafeExternalUrl } from "@/lib/safe-external-url";
 import { formatOpportunityDate } from "@/lib/opportunity-display";
+import { buildWorkspaceOverview } from "@/lib/workspace-overview";
 import { PlusOpportunityIntake } from "@/components/plus-opportunity-intake";
 import { PlusWorkspaceProfile } from "@/components/plus-workspace-profile";
 
@@ -158,6 +161,11 @@ function NextdoorPlusPage() {
         opportunityType: typeFilter,
       }),
     [opportunities, search, channelFilter, regionFilter, typeFilter],
+  );
+
+  const overview = useMemo(
+    () => buildWorkspaceOverview(saved, activity),
+    [saved, activity],
   );
 
   async function handleAuth(event: FormEvent<HTMLFormElement>) {
@@ -449,6 +457,90 @@ function NextdoorPlusPage() {
                   <p className="mt-1 text-sm text-[#718075]">Market: {workspace.market}</p>
                 </div>
                 <div className="rounded-full bg-[#e8f4e8] px-3 py-1.5 text-xs font-bold text-[#286442]">Secure workspace</div>
+              </div>
+            </section>
+
+            <section aria-labelledby="workspace-overview-heading" className="space-y-4 rounded-2xl border border-[#dfe8e0] bg-white p-5 shadow-sm md:p-7">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#edf5ed] text-[#286442]">
+                  <Activity size={19} />
+                </div>
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#6a8c73]">Workspace snapshot</div>
+                  <h2 id="workspace-overview-heading" className="mt-1 text-xl font-black">Your opportunity pipeline</h2>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                {[
+                  { label: "Not started", value: overview.statusCounts.not_started },
+                  { label: "Interested", value: overview.statusCounts.interested },
+                  { label: "Applied", value: overview.statusCounts.applied },
+                  { label: "Won", value: overview.statusCounts.won },
+                  { label: "Dismissed", value: overview.statusCounts.dismissed },
+                ].map((stat) => (
+                  <div key={stat.label} className="rounded-xl bg-[#f6f8f5] p-4">
+                    <p className="text-xs font-semibold text-[#718075]">{stat.label}</p>
+                    <p className="mt-2 text-2xl font-black tabular-nums text-[#173f30]">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <section aria-labelledby="workspace-followups-heading" className="rounded-xl border border-[#e5ece5] p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <CalendarClock size={17} className="text-[#4b8b60]" />
+                    <h3 id="workspace-followups-heading" className="font-bold">Follow-ups</h3>
+                  </div>
+                  {overview.followUps.length === 0 ? (
+                    <p className="text-sm leading-6 text-[#718075]">No follow-ups scheduled. Set a reminder from any saved opportunity when you are ready.</p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {overview.followUps.slice(0, 5).map((item) => {
+                        const detailHref = getOpportunityDetailHref(item.opportunityId);
+                        return (
+                          <li key={item.opportunityId} className="flex flex-wrap items-center justify-between gap-3 border-b border-[#edf1ed] pb-3 last:border-0 last:pb-0">
+                            <div className="min-w-0">
+                              {detailHref ? (
+                                <a href={detailHref} className="font-semibold text-[#286442] hover:underline">{item.title}</a>
+                              ) : (
+                                <p className="font-semibold">{item.title}</p>
+                              )}
+                              <p className="mt-1 text-xs text-[#7a887e]">
+                                <time dateTime={item.dueAt}>{formatOpportunityDate(item.dueAt) ?? "Date unavailable"}</time>
+                                {item.status !== "not_started" && ` · ${item.status.replace("_", " ")}`}
+                              </p>
+                            </div>
+                            <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${item.overdue ? "bg-amber-100 text-amber-800" : "bg-[#edf5ed] text-[#286442]"}`}>
+                              {item.overdue ? "Overdue" : "Upcoming"}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </section>
+
+                <section aria-labelledby="workspace-recent-activity-heading" className="rounded-xl border border-[#e5ece5] p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <Activity size={17} className="text-[#4b8b60]" />
+                    <h3 id="workspace-recent-activity-heading" className="font-bold">Recent activity</h3>
+                  </div>
+                  {overview.recentActivity.length === 0 ? (
+                    <p className="text-sm leading-6 text-[#718075]">Your saved-opportunity activity will appear here as you add notes, update statuses and schedule follow-ups.</p>
+                  ) : (
+                    <ol className="space-y-3">
+                      {overview.recentActivity.map((event) => (
+                        <li key={event.id} className="border-b border-[#edf1ed] pb-3 last:border-0 last:pb-0">
+                          <p className="text-xs font-bold text-[#286442]">{event.label}</p>
+                          <p className="mt-1 text-sm font-semibold text-[#365b43]">{event.title}</p>
+                          {event.detail && <p className="mt-1 whitespace-pre-line break-words text-xs leading-5 text-[#718075]">{event.detail}</p>}
+                          <time dateTime={event.createdAt} className="mt-1 block text-[11px] text-[#8a9a8e]">{formatOpportunityDate(event.createdAt) ?? "Date unavailable"}</time>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </section>
               </div>
             </section>
 
