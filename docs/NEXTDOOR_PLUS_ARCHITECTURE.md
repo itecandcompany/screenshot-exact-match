@@ -49,7 +49,7 @@ The original schema and access policies pre-date this feature branch. The fourth
 - Save-to-workspace action and remove-from-shortlist control.
 - Private pipeline status events: interested, applied, won and dismissed.
 - Private notes and follow-up-date events.
-- Recent activity timeline for saved opportunities.
+- Workspace pipeline overview derived from existing saved-opportunity and activity records: current status counts, the latest scheduled follow-up per saved opportunity (including overdue reminders), and the six most recent events. No additional schema or client-side cross-workspace query is required.
 - Truthful empty state when no published opportunities are available.
 - Member-submitted opportunity intake with required original source URLs and evidence; submissions remain private while pending.
 - Platform-admin review queue with atomic approve-and-publish or reject actions and reviewer notes.
@@ -78,7 +78,7 @@ To avoid recursive RLS policy evaluation, workspace membership/ownership checks 
 - Verify email confirmation and password recovery end-to-end against the Supabase Auth redirect and SMTP settings.
 - Add automated tests for cross-workspace isolation and all write policies; client-side filtering, source validation, refresh coordination and profile-upsert behavior now have unit coverage.
 - Replace the small direct Auth/PostgREST wrapper with `@supabase/supabase-js` once the package and Bun lockfile can be regenerated together.
-- Build a richer workspace overview with upcoming follow-ups, saved-status summaries and clearer activity grouping. Direct-link detail pages are now implemented.
+- Add automated tests for cross-workspace isolation and all write policies; the workspace overview currently has unit coverage for latest-status aggregation, follow-up replacement/ordering, and saved-only activity.
 - Run lint, typecheck, tests and production build; complete browser QA.
 
 ## Release safety
