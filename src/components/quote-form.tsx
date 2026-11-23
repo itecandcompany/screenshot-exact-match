@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowUpRight, Mail, Sparkles } from "lucide-react";
+import { Mail, Sparkles } from "lucide-react";
 import { quoteSchema, type QuoteInput } from "@/content/quote";
 import { services } from "@/content/services";
 import { site } from "@/content/site";
@@ -64,8 +64,8 @@ export function QuoteForm({
 }) {
   const [auditReport, setAuditReport] = useState("");
   const [auditBrandUrl, setAuditBrandUrl] = useState("");
-  const [emailDraft, setEmailDraft] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
   const {
     register,
     handleSubmit,
@@ -93,31 +93,29 @@ export function QuoteForm({
     }
   }, []);
 
-  function prepareEmail(data: QuoteInput) {
+  async function submitEnquiry(data: QuoteInput) {
     setEmailError("");
-    const body = [
-      "NEW PROJECT ENQUIRY — NEXTDOOR ADS",
-      "",
-      `Name: ${data.name}`,
-      `Business: ${data.business}`,
-      `Email: ${data.email}`,
-      `Phone / WhatsApp: ${data.phone}`,
-      `Service: ${services.find((item) => item.slug === data.service)?.title || data.service}`,
-      `Budget: ${data.budget}`,
-      `Preferred contact: ${data.contact}`,
-      "",
-      "PROJECT DETAILS",
-      data.description,
-      auditReport ? "\n\n" + auditReport : "",
-    ].join("\n");
-    const subject = `NEXTDOOR ADS project enquiry — ${data.business}`;
-    setEmailDraft(`mailto:${site.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+    setEmailSent(false);
+    try {
+      const response = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, auditReport }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) {
+        throw new Error(typeof result.error === "string" ? result.error : "We could not send your enquiry. Please try again.");
+      }
+      setEmailSent(true);
+    } catch (error) {
+      setEmailError(error instanceof Error ? error.message : "We could not send your enquiry. Please try again.");
+    }
   }
 
   return (
     <form
       noValidate
-      onSubmit={handleSubmit(prepareEmail)}
+      onSubmit={handleSubmit(submitEnquiry)}
       className="grid sm:grid-cols-2 gap-6"
     >
       {auditReport && (
@@ -127,7 +125,7 @@ export function QuoteForm({
           </div>
           <p className="text-xs text-muted-foreground mt-2">
             {auditBrandUrl} — the audit summary, scorecard, opportunities and creative concepts
-            will be included in the email you prepare below.
+            will be included with your project enquiry.
           </p>
           <details className="mt-3">
             <summary className="cursor-pointer text-xs font-semibold">Preview attached audit report</summary>
@@ -200,21 +198,18 @@ export function QuoteForm({
         <input id="website" tabIndex={-1} autoComplete="off" {...register("website")} />
       </div>
       <p className="sm:col-span-2 text-xs text-muted-foreground leading-6">
-        Your details and any attached brand audit are prepared in an email to {site.email}. Nothing
-        is sent automatically; review the email and press Send in your email app.
+        Your enquiry is sent securely to NEXTDOOR ADS. If you include an AI brand audit, its summary
+        and recommendations are attached to the enquiry. You can also reach us at {site.email}.
       </p>
       <div className="sm:col-span-2">
         <Button type="submit" variant="forest" disabled={isSubmitting}>
-          <Mail /> Prepare project email <ArrowUpRight />
+          <Mail /> {isSubmitting ? "Sending enquiry…" : "Send project enquiry"}
         </Button>
         {emailError && <p role="alert" className="field-error mt-3">{emailError}</p>}
-        {emailDraft && (
-          <div className="mt-4 rounded-sm border border-primary/30 bg-secondary p-4">
-            <p className="text-sm font-semibold">Your enquiry email is prepared.</p>
-            <a href={emailDraft} className="inline-flex items-center gap-2 mt-3 text-sm font-bold underline underline-offset-4">
-              Open email and send to NEXTDOOR ADS <ArrowUpRight size={15} />
-            </a>
-            <p className="text-xs text-muted-foreground mt-2">Your audit report is included in the email body when an audit was completed first.</p>
+        {emailSent && (
+          <div role="status" className="mt-4 rounded-sm border border-primary/30 bg-secondary p-4">
+            <p className="text-sm font-semibold">Your enquiry has been sent successfully.</p>
+            <p className="text-xs text-muted-foreground mt-2">Thank you for contacting NEXTDOOR ADS. We’ll follow up using your preferred contact method.</p>
           </div>
         )}
       </div>
