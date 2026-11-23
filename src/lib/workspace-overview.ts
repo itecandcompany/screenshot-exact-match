@@ -143,17 +143,22 @@ export function buildWorkspaceOverview(
         (timestamp(left.created_at) ?? 0),
     )
     .slice(0, 6)
-    .map((event) => ({
-      id: event.id,
-      opportunityId: event.opportunity_id,
-      title: savedByOpportunity.get(event.opportunity_id)!.opportunities.title,
-      label: activityLabel(event.event_type),
-      detail:
-        event.event_type === "follow_up_set"
-          ? formatOpportunityDate(event.note)
-          : event.note,
-      createdAt: event.created_at,
-    }));
+    .flatMap((event) => {
+      const savedItem = savedByOpportunity.get(event.opportunity_id);
+      if (!savedItem) return [];
+
+      return [{
+        id: event.id,
+        opportunityId: event.opportunity_id,
+        title: savedItem.opportunities.title,
+        label: activityLabel(event.event_type),
+        detail:
+          event.event_type === "follow_up_set"
+            ? formatOpportunityDate(event.note)
+            : event.note,
+        createdAt: event.created_at,
+      }];
+    });
 
   return { statusCounts, followUps, recentActivity };
 }
