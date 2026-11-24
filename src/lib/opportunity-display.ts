@@ -30,7 +30,7 @@ export type OpportunityDeadlineFilter =
 const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
 
 function parseOpportunityDeadline(value: string): number {
-  const dateOnly = /^\\d{4}-\\d{2}-\\d{2}$/.test(value);
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
   if (!dateOnly) return Date.parse(value);
 
   const calendarDay = new Date(`${value}T00:00:00.000Z`);
