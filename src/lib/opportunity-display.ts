@@ -55,7 +55,7 @@ export function getOpportunityDeadlineStatus(
   if (!Number.isFinite(deadline)) return "invalid";
 
   const remaining = deadline - now;
-  if (remaining < 0) return "expired";
+  if (remaining <= 0) return "expired";
   if (remaining <= SEVEN_DAYS_IN_MS) return "closing_soon";
   return "upcoming";
 }
