@@ -61,3 +61,55 @@ describe("Nextdoor Plus opportunity filters", () => {
     expect(source).toEqual(opportunities);
   });
 });
+
+
+describe("opportunity deadline filters", () => {
+  const now = Date.parse("2026-11-24T06:00:00.000Z");
+  const current = makeOpportunity({
+    id: "current",
+    deadline: "2026-12-10T06:00:00.000Z",
+  });
+  const closingSoon = makeOpportunity({
+    id: "closing-soon",
+    deadline: "2026-11-27T06:00:00.000Z",
+  });
+  const expired = makeOpportunity({
+    id: "expired",
+    deadline: "2026-11-20T06:00:00.000Z",
+  });
+  const undated = makeOpportunity({
+    id: "undated",
+    deadline: null,
+  });
+
+  it("shows only current opportunities in the default active view", () => {
+    expect(
+      filterOpportunities([current, closingSoon, expired, undated], {
+        deadline: "active",
+        now,
+      }).map((item) => item.id),
+    ).toEqual(["current", "closing-soon", "undated"]);
+  });
+
+  it("can isolate closing-soon, expired and undated opportunities", () => {
+    const opportunities = [current, closingSoon, expired, undated];
+    expect(
+      filterOpportunities(opportunities, { deadline: "closing_soon", now }).map((item) => item.id),
+    ).toEqual(["closing-soon"]);
+    expect(
+      filterOpportunities(opportunities, { deadline: "expired", now }).map((item) => item.id),
+    ).toEqual(["expired"]);
+    expect(
+      filterOpportunities(opportunities, { deadline: "no_deadline", now }).map((item) => item.id),
+    ).toEqual(["undated"]);
+  });
+
+  it("keeps the complete feed available through the all-deadlines filter", () => {
+    expect(
+      filterOpportunities([current, closingSoon, expired, undated], {
+        deadline: "all",
+        now,
+      }),
+    ).toHaveLength(4);
+  });
+});

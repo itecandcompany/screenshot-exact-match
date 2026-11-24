@@ -41,7 +41,12 @@ import {
 import { filterOpportunities } from "@/lib/opportunity-filters";
 import { getOpportunityDetailHref } from "@/lib/opportunity-detail";
 import { getSafeExternalUrl } from "@/lib/safe-external-url";
-import { formatOpportunityDate } from "@/lib/opportunity-display";
+import {
+  formatOpportunityDate,
+  getOpportunityDeadlineLabel,
+  getOpportunityDeadlineStatus,
+  type OpportunityDeadlineFilter,
+} from "@/lib/opportunity-display";
 import { buildWorkspaceOverview } from "@/lib/workspace-overview";
 import { PlusOpportunityIntake } from "@/components/plus-opportunity-intake";
 import { PlusWorkspaceProfile } from "@/components/plus-workspace-profile";
@@ -97,6 +102,7 @@ function NextdoorPlusPage() {
   const [channelFilter, setChannelFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [deadlineFilter, setDeadlineFilter] = useState<OpportunityDeadlineFilter>("active");
   const [expandedOpportunityId, setExpandedOpportunityId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -159,8 +165,9 @@ function NextdoorPlusPage() {
         channel: channelFilter,
         region: regionFilter,
         opportunityType: typeFilter,
+        deadline: deadlineFilter,
       }),
-    [opportunities, search, channelFilter, regionFilter, typeFilter],
+    [opportunities, search, channelFilter, regionFilter, typeFilter, deadlineFilter],
   );
 
   const overview = useMemo(
@@ -566,7 +573,7 @@ function NextdoorPlusPage() {
                     />
                   </label>
                   {opportunities.length > 0 && (
-                    <div className="grid gap-2 sm:grid-cols-3">
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                       <label className="text-xs font-semibold text-[#718075]">
                         Channel
                         <select
@@ -612,6 +619,20 @@ function NextdoorPlusPage() {
                           ))}
                         </select>
                       </label>
+                      <label className="text-xs font-semibold text-[#718075]">
+                        Deadline
+                        <select
+                          value={deadlineFilter}
+                          onChange={(event) => setDeadlineFilter(event.target.value as OpportunityDeadlineFilter)}
+                          className="mt-1 w-full rounded-lg border border-[#dce5dd] bg-white px-3 py-2 text-sm text-[#365b43] outline-none focus:border-[#4e9466]"
+                        >
+                          <option value="active">Current &amp; upcoming</option>
+                          <option value="all">All deadlines</option>
+                          <option value="closing_soon">Closing in 7 days</option>
+                          <option value="no_deadline">No deadline</option>
+                          <option value="expired">Past deadline</option>
+                        </select>
+                      </label>
                     </div>
                   )}
                 </div>
@@ -627,7 +648,7 @@ function NextdoorPlusPage() {
                   <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[#718075]">
                     {opportunities.length === 0
                       ? "Your workspace is connected, but there are no published opportunities in the database yet. We will show verified listings here once they are added."
-                      : "Try a different keyword or clear your search to see the available listings."}
+                      : "Try a different keyword or deadline filter to see the available listings."}
                   </p>
                 </div>
               ) : (
@@ -637,11 +658,22 @@ function NextdoorPlusPage() {
                     const isExpanded = expandedOpportunityId === item.id;
                     const deadline = formatOpportunityDate(item.deadline);
                     const verifiedAt = formatOpportunityDate(item.verified_at);
+                    const deadlineStatus = getOpportunityDeadlineStatus(item.deadline);
+                    const deadlineLabel = getOpportunityDeadlineLabel(deadlineStatus);
+                    const deadlineBadgeClass = deadlineStatus === "expired"
+                      ? "bg-amber-100 text-amber-800"
+                      : deadlineStatus === "closing_soon"
+                        ? "bg-[#fff4d6] text-[#805500]"
+                        : deadlineStatus === "invalid"
+                          ? "bg-slate-100 text-slate-700"
+                          : "bg-[#edf5ed] text-[#286442]";
+                    const canSave = deadlineStatus !== "expired" && deadlineStatus !== "invalid";
                     const detailHref = getOpportunityDetailHref(item.id);
                     return (
                     <article key={item.id} className="rounded-2xl border border-[#dfe8e0] bg-white p-5 shadow-sm">
                       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#66816e]">
                         {item.channel && <span className="rounded-full bg-[#edf5ed] px-2.5 py-1">{item.channel}</span>}
+                        <span className={`rounded-full px-2.5 py-1 ${deadlineBadgeClass}`}>{deadlineLabel}</span>
                         {item.city && <span>{item.city}{item.region ? `, ${item.region}` : ""}</span>}
                       </div>
                       <h3 className="mt-3 text-lg font-black">{item.title}</h3>
@@ -706,10 +738,10 @@ function NextdoorPlusPage() {
                           <button
                             type="button"
                             onClick={() => void handleSave(item)}
-                            disabled={submitting || savedIds.has(item.id)}
+                            disabled={submitting || savedIds.has(item.id) || !canSave}
                             className="inline-flex items-center gap-1.5 rounded-lg bg-[#1c5039] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#143d2b] disabled:cursor-not-allowed disabled:bg-[#e7eee8] disabled:text-[#56705d]"
                           >
-                            {savedIds.has(item.id) ? <><CheckCircle2 size={14} /> Saved</> : <><Bookmark size={14} /> Save</>}
+                            {savedIds.has(item.id) ? <><CheckCircle2 size={14} /> Saved</> : deadlineStatus === "expired" ? "Past deadline" : deadlineStatus === "invalid" ? "Verify deadline" : <><Bookmark size={14} /> Save</>}
                           </button>
                         </div>
                       </div>

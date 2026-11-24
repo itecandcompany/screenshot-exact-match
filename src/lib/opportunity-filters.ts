@@ -1,10 +1,13 @@
 import type { Opportunity } from "@/lib/supabase/client";
+import { getOpportunityDeadlineStatus, type OpportunityDeadlineFilter } from "@/lib/opportunity-display";
 
 export interface OpportunityFilters {
   search?: string;
   channel?: string;
   region?: string;
   opportunityType?: string;
+  deadline?: OpportunityDeadlineFilter;
+  now?: number;
 }
 
 export function filterOpportunities(
@@ -40,7 +43,16 @@ export function filterOpportunities(
       !filters.opportunityType ||
       filters.opportunityType === "all" ||
       opportunity.opportunity_type === filters.opportunityType;
+    const deadlineStatus = getOpportunityDeadlineStatus(opportunity.deadline, filters.now);
+    const matchesDeadline =
+      !filters.deadline ||
+      filters.deadline === "all" ||
+      (filters.deadline === "active"
+        ? deadlineStatus === "upcoming" ||
+          deadlineStatus === "closing_soon" ||
+          deadlineStatus === "no_deadline"
+        : deadlineStatus === filters.deadline);
 
-    return matchesQuery && matchesChannel && matchesRegion && matchesType;
+    return matchesQuery && matchesChannel && matchesRegion && matchesType && matchesDeadline;
   });
 }

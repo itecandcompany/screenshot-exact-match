@@ -7,7 +7,11 @@ import {
   type Opportunity,
 } from "@/lib/supabase/client";
 import { getSafeExternalUrl } from "@/lib/safe-external-url";
-import { formatOpportunityDate } from "@/lib/opportunity-display";
+import {
+  formatOpportunityDate,
+  getOpportunityDeadlineLabel,
+  getOpportunityDeadlineStatus,
+} from "@/lib/opportunity-display";
 
 export const Route = createFileRoute("/plus/opportunities/$opportunityId")({
   head: () => ({
@@ -71,6 +75,13 @@ function PlusOpportunityDetailPage() {
 
   const sourceUrl = getSafeExternalUrl(opportunity?.source_url);
   const deadline = formatOpportunityDate(opportunity?.deadline);
+  const deadlineStatus = getOpportunityDeadlineStatus(opportunity?.deadline);
+  const deadlineLabel = getOpportunityDeadlineLabel(deadlineStatus);
+  const deadlineBadgeClass = deadlineStatus === "expired"
+    ? "bg-[#ffe5e5] text-[#7f1d1d]"
+    : deadlineStatus === "closing_soon"
+      ? "bg-[#fff4d6] text-[#704b00]"
+      : "bg-white/10 text-white";
   const verifiedAt = formatOpportunityDate(opportunity?.verified_at);
 
   return (
@@ -146,6 +157,7 @@ function PlusOpportunityDetailPage() {
               <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold">
                 {opportunity.channel && <span className="rounded-full bg-white/10 px-3 py-1.5">{opportunity.channel}</span>}
                 {opportunity.opportunity_type && <span className="rounded-full bg-white/10 px-3 py-1.5">{opportunity.opportunity_type}</span>}
+                <span className={`rounded-full px-3 py-1.5 ${deadlineBadgeClass}`}>{deadlineLabel}</span>
               </div>
             </div>
 

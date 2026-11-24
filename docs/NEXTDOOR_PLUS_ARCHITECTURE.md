@@ -42,7 +42,7 @@ The original schema and access policies pre-date this feature branch. The fourth
 - Browser session persistence, expiry-aware access-token refresh before authenticated REST requests, per-account refresh de-duplication, and sign-out.
 - First-login profile and Tanzania workspace provisioning; returning sign-ins no longer overwrite a saved display name with the email prefix.
 - Self-service business profile settings for display name, business name and contact phone. Reads and updates are scoped to the signed-in user and protected by the existing `profiles` row-level security policies.
-- Published/open opportunity feed with search, channel/region/type filters and source links. Every source URL is revalidated as an absolute HTTP(S) URL before rendering; credential-bearing and non-web protocols are never exposed as clickable links.
+- Published/open opportunity feed with search, channel/region/type filters, deadline-aware views and source links. The default view excludes expired or invalid deadlines; members can switch to closing-soon (7 days), undated, expired or all listings. Date-only deadlines remain valid through 23:59 Africa/Dar_es_Salaam time. Expired/invalid listings cannot be saved. Every source URL is revalidated as an absolute HTTP(S) URL before rendering; credential-bearing and non-web protocols are never exposed as clickable links.
 - Accessible inline opportunity detail disclosures expand the full description and show location, opportunity type, eligibility, deadline and verification timestamp. Date/time values are formatted in Africa/Dar_es_Salaam time.
 - Shareable `/plus/opportunities/:opportunityId` detail pages load only after a valid authenticated session and retrieve only open, published records. The feed and saved shortlist link to the same detail page; source links are revalidated before rendering.
 - The detail page uses TanStack Router's non-nested `plus_` file-route convention, so it renders independently instead of being incorrectly wrapped by the existing `/plus` leaf page.
@@ -72,7 +72,7 @@ To avoid recursive RLS policy evaluation, workspace membership/ownership checks 
 
 ## Known gaps and next work
 
-- No published opportunities currently exist in the table. Member submissions are now supported, but an administrator must verify each original source before publication; do not add fabricated listings.
+- No published opportunities currently exist in the table. Member submissions are now supported, but an administrator must verify each original source before publication; do not add fabricated listings. Deadline status is computed at read time in the client and does not automatically rewrite database status; admins must still review source pages and close records when appropriate.
 - The first platform administrator must be provisioned manually after creating and confirming the owner account; see `docs/NEXTDOOR_PLUS_ADMIN_BOOTSTRAP.md`. The Supabase project currently has no auth users, so no admin has been seeded.
 - Restore the first three original core migration SQL files before using this branch to bootstrap a clean Supabase project; their versions are in database history but their source files are not present here.
 - Verify email confirmation and password recovery end-to-end against the Supabase Auth redirect and SMTP settings.
