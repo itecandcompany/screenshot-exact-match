@@ -46,7 +46,7 @@ The original schema and access policies pre-date this feature branch. The fourth
 - Accessible inline opportunity detail disclosures expand the full description and show location, opportunity type, eligibility, deadline and verification timestamp. Date/time values are formatted in Africa/Dar_es_Salaam time.
 - Shareable `/plus/opportunities/:opportunityId` detail pages load only after a valid authenticated session and retrieve only open, published records. The feed and saved shortlist link to the same detail page; source links are revalidated before rendering.
 - The detail page uses TanStack Router's non-nested `plus_` file-route convention, so it renders independently instead of being incorrectly wrapped by the existing `/plus` leaf page.
-- Save-to-workspace action and remove-from-shortlist control.
+- Save-to-workspace uses a single SECURITY INVOKER RPC to atomically insert the shortlist row and its matching activity event. A transaction-scoped advisory lock and the existing unique `(workspace_id, opportunity_id)` constraint make retries/concurrent saves idempotent; a legacy save by the same actor can repair a missing `saved` event. The RPC keeps RLS active and removes anonymous/unneeded write grants from the saved-opportunity and activity tables.
 - Private pipeline status events: interested, applied, won and dismissed.
 - Private notes and follow-up-date events.
 - Workspace pipeline overview derived from existing saved-opportunity and activity records: current status counts, the latest scheduled follow-up per saved opportunity (including overdue reminders), and the six most recent events. No additional schema or client-side cross-workspace query is required.
@@ -72,6 +72,7 @@ To avoid recursive RLS policy evaluation, workspace membership/ownership checks 
 
 ## Known gaps and next work
 
+- The atomic-save migration `20261125090000_nextdoor_plus_atomic_saves.sql` is committed on the feature branch but has not been applied to the existing Supabase project. Apply it only after review and explicit release approval.
 - No published opportunities currently exist in the table. Member submissions are now supported, but an administrator must verify each original source before publication; do not add fabricated listings. Deadline status is computed at read time in the client and does not automatically rewrite database status; admins must still review source pages and close records when appropriate.
 - The first platform administrator must be provisioned manually after creating and confirming the owner account; see `docs/NEXTDOOR_PLUS_ADMIN_BOOTSTRAP.md`. The Supabase project currently has no auth users, so no admin has been seeded.
 - Restore the first three original core migration SQL files before using this branch to bootstrap a clean Supabase project; their versions are in database history but their source files are not present here.
