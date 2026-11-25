@@ -19,6 +19,7 @@
     "src/test/session-refresh.test.ts",
     "src/test/workspace-profile.test.ts",
     "src/test/workspace-profile-settings.test.ts",
-    "src/test/workspace-overview.test.ts"
+    "src/test/workspace-overview.test.ts",
+    "src/test/opportunity-save-migration.test.ts"
   ]
 }
