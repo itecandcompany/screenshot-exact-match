@@ -20,6 +20,8 @@
     "src/test/workspace-profile.test.ts",
     "src/test/workspace-profile-settings.test.ts",
     "src/test/workspace-overview.test.ts",
-    "src/test/opportunity-save-migration.test.ts"
+    "src/test/opportunity-save-migration.test.ts",
+    "src/lib/supabase/atomic-save-compat.ts",
+    "src/test/atomic-save-compat.test.ts"
   ]
 }
