@@ -1,6 +1,7 @@
 import { normalizeOpportunitySubmission, type OpportunitySubmissionDraft } from "@/lib/opportunity-submissions";
 import { isOpportunityId } from "@/lib/opportunity-detail";
 import { ensureFreshSession } from "@/lib/supabase/session-refresh";
+import { isMissingAtomicSaveRpcError } from "@/lib/supabase/atomic-save-compat";
 import { buildProfileUpsert } from "@/lib/workspace-profile";
 import { normalizeWorkspaceProfileDraft, type WorkspaceProfileDraft } from "@/lib/workspace-profile-settings";
 
@@ -529,24 +530,74 @@ export async function saveOpportunity(
   workspaceId: string,
   opportunityId: string,
 ) {
-  const result = await restRequest<{ saved: boolean; created: boolean }>(
-    "rpc/save_opportunity_to_workspace",
+  try {
+    const result = await restRequest<{ saved: boolean; created: boolean }>(
+      "rpc/save_opportunity_to_workspace",
+      {
+        method: "POST",
+        token: session.access_token,
+        userId: session.user.id,
+        body: {
+          p_workspace_id: workspaceId,
+          p_opportunity_id: opportunityId,
+        },
+      },
+    );
+
+    if (result?.saved !== true) {
+      throw new Error("The opportunity could not be saved. Please try again.");
+    }
+
+    return { ...result, atomic: true };
+  } catch (error) {
+    if (!isMissingAtomicSaveRpcError(error)) throw error;
+  }
+
+  // The new RPC migration is not yet applied to the existing Supabase project.
+  // Keep the preview functional with a legacy PostgREST path until it is.
+  const inserted = await restRequest<Array<{ id: string }>>(
+    "saved_opportunities?on_conflict=workspace_id,opportunity_id",
     {
       method: "POST",
       token: session.access_token,
       userId: session.user.id,
+      prefer: "resolution=ignore-duplicates,return=representation",
       body: {
-        p_workspace_id: workspaceId,
-        p_opportunity_id: opportunityId,
+        workspace_id: workspaceId,
+        opportunity_id: opportunityId,
+        saved_by: session.user.id,
       },
     },
   );
 
-  if (result?.saved !== true) {
-    throw new Error("The opportunity could not be saved. Please try again.");
+  const saved = await restRequest<Array<{ saved_by: string }>>(
+    `saved_opportunities?workspace_id=eq.${encodeURIComponent(workspaceId)}&opportunity_id=eq.${encodeURIComponent(opportunityId)}&select=saved_by&limit=1`,
+    { token: session.access_token, userId: session.user.id },
+  );
+
+  if (saved[0]?.saved_by === session.user.id) {
+    const savedEvents = await restRequest<Array<{ id: string }>>(
+      `opportunity_activity?workspace_id=eq.${encodeURIComponent(workspaceId)}&opportunity_id=eq.${encodeURIComponent(opportunityId)}&event_type=eq.saved&select=id&limit=1`,
+      { token: session.access_token, userId: session.user.id },
+    );
+
+    if (!savedEvents.length) {
+      await restRequest("opportunity_activity", {
+        method: "POST",
+        token: session.access_token,
+        userId: session.user.id,
+        prefer: "return=minimal",
+        body: {
+          workspace_id: workspaceId,
+          opportunity_id: opportunityId,
+          actor_id: session.user.id,
+          event_type: "saved",
+        },
+      });
+    }
   }
 
-  return result;
+  return { saved: true, created: inserted.length > 0, atomic: false };
 }
 
 export async function updateOpportunityStatus(
