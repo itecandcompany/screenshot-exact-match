@@ -529,34 +529,24 @@ export async function saveOpportunity(
   workspaceId: string,
   opportunityId: string,
 ) {
-  const existing = await restRequest<Array<{ id: string }>>(
-    `saved_opportunities?workspace_id=eq.${workspaceId}&opportunity_id=eq.${opportunityId}&select=id&limit=1`,
-    { token: session.access_token, userId: session.user.id },
+  const result = await restRequest<{ saved: boolean; created: boolean }>(
+    "rpc/save_opportunity_to_workspace",
+    {
+      method: "POST",
+      token: session.access_token,
+      userId: session.user.id,
+      body: {
+        p_workspace_id: workspaceId,
+        p_opportunity_id: opportunityId,
+      },
+    },
   );
-  if (existing.length) return;
-  await restRequest("saved_opportunities", {
-    method: "POST",
-    token: session.access_token,
-    userId: session.user.id,
-    prefer: "return=minimal",
-    body: {
-      workspace_id: workspaceId,
-      opportunity_id: opportunityId,
-      saved_by: session.user.id,
-    },
-  });
-  await restRequest("opportunity_activity", {
-    method: "POST",
-    token: session.access_token,
-    userId: session.user.id,
-    prefer: "return=minimal",
-    body: {
-      workspace_id: workspaceId,
-      opportunity_id: opportunityId,
-      actor_id: session.user.id,
-      event_type: "saved",
-    },
-  });
+
+  if (result?.saved !== true) {
+    throw new Error("The opportunity could not be saved. Please try again.");
+  }
+
+  return result;
 }
 
 export async function updateOpportunityStatus(
