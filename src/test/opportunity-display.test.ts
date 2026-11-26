@@ -16,6 +16,10 @@ describe("formatOpportunityDate", () => {
     expect(formatOpportunityDate("2026-11-21")).toBe("21 Nov 2026");
   });
 
+  it("renders the canonical Tanzania end-of-day timestamp as date-only", () => {
+    expect(formatOpportunityDate("2026-11-21T20:59:59.999Z")).toBe("21 Nov 2026");
+  });
+
   it("returns null for missing or invalid dates", () => {
     expect(formatOpportunityDate(null)).toBeNull();
     expect(formatOpportunityDate(undefined)).toBeNull();
@@ -40,6 +44,21 @@ describe("getOpportunityDeadlineStatus", () => {
     ).toBe("closing_soon");
     expect(
       getOpportunityDeadlineStatus("2026-11-24", Date.parse("2026-11-24T21:00:00.000Z")),
+    ).toBe("expired");
+  });
+
+  it("keeps persisted date-only submissions active through the Tanzania day boundary", () => {
+    expect(
+      getOpportunityDeadlineStatus(
+        "2026-11-24T20:59:59.999Z",
+        Date.parse("2026-11-24T20:59:59.998Z"),
+      ),
+    ).toBe("closing_soon");
+    expect(
+      getOpportunityDeadlineStatus(
+        "2026-11-24T20:59:59.999Z",
+        Date.parse("2026-11-24T20:59:59.999Z"),
+      ),
     ).toBe("expired");
   });
 
