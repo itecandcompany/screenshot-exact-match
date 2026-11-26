@@ -4,7 +4,10 @@ export function formatOpportunityDate(value: string | null | undefined): string 
   const timestamp = Date.parse(value);
   if (!Number.isFinite(timestamp)) return null;
 
-  const hasTime = /T\d{2}:\d{2}/.test(value);
+  const isTanzaniaDateOnly =
+    /^\d{4}-\d{2}-\d{2}$/.test(value) ||
+    /^\d{4}-\d{2}-\d{2}T20:59:59\.999Z$/.test(value);
+  const hasTime = /T\d{2}:\d{2}/.test(value) && !isTanzaniaDateOnly;
   const options: Intl.DateTimeFormatOptions = hasTime
     ? { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Dar_es_Salaam" }
     : { dateStyle: "medium", timeZone: "Africa/Dar_es_Salaam" };
