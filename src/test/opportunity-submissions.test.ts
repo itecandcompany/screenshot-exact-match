@@ -30,7 +30,7 @@ describe("opportunity submission validation", () => {
 
     expect(payload.title).toBe("Arusha retail campaign");
     expect(payload.source_url).toBe("https://example.org/opportunities/arusha");
-    expect(payload.deadline).toBe("2026-12-15T00:00:00.000Z");
+    expect(payload.deadline).toBe("2026-12-15T20:59:59.999Z");
     expect(payload.opportunity_type).toBe("Campaign");
   });
 
@@ -56,7 +56,19 @@ describe("opportunity submission validation", () => {
     ).toThrow("Source evidence must be between 20 and 4,000 characters");
   });
 
-  it("rejects invalid deadlines and overlong descriptions", () => {
+  it("rejects invalid calendar dates and preserves explicit timestamp deadlines", () => {
+    expect(() =>
+      normalizeOpportunitySubmission(makeDraft({ deadline: "2026-02-31" })),
+    ).toThrow("Enter a valid opportunity deadline");
+
+    expect(
+      normalizeOpportunitySubmission(
+        makeDraft({ deadline: "2026-12-15T12:30:00.000Z" }),
+      ).deadline,
+    ).toBe("2026-12-15T12:30:00.000Z");
+  });
+
+  it("rejects malformed deadlines and overlong descriptions", () => {
     expect(() =>
       normalizeOpportunitySubmission(makeDraft({ deadline: "not-a-date" })),
     ).toThrow("Enter a valid opportunity deadline");
