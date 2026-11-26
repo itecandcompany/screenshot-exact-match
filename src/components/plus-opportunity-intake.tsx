@@ -9,6 +9,7 @@ import {
   type OpportunitySubmission,
 } from "@/lib/supabase/client";
 import type { OpportunitySubmissionDraft } from "@/lib/opportunity-submissions";
+import { formatOpportunityDate } from "@/lib/opportunity-display";
 import { getSafeExternalUrl } from "@/lib/safe-external-url";
 
 const emptyDraft: OpportunitySubmissionDraft = {
@@ -314,7 +315,7 @@ export function PlusOpportunityIntake({ session, onRefresh }: PlusOpportunityInt
                   <div>
                     <h3 className="font-bold">{submission.title}</h3>
                     <p className="mt-1 text-xs text-[#7a887e]">
-                      {submission.source_name || "Source submitted"} · {new Date(submission.created_at).toLocaleDateString()}
+                      {submission.source_name || "Source submitted"} · {formatOpportunityDate(submission.created_at) ?? "Date unavailable"}
                       {isAdmin ? " · Submitted by " + submission.submitted_by.slice(0, 8) : ""}
                     </p>
                   </div>
