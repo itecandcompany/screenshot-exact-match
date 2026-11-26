@@ -36,6 +36,33 @@ function optionalText(value: string, field: string, maxLength: number): string |
   return trimmed || null;
 }
 
+function normalizeSubmissionDeadline(value: string): string | null {
+  const rawDeadline = value.trim();
+  if (!rawDeadline) return null;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(rawDeadline)) {
+    const calendarDay = new Date(rawDeadline + "T00:00:00.000Z");
+    if (
+      !Number.isFinite(calendarDay.getTime()) ||
+      calendarDay.toISOString().slice(0, 10) !== rawDeadline
+    ) {
+      throw new Error("Enter a valid opportunity deadline.");
+    }
+
+    // Date inputs represent a Tanzania calendar day, not midnight UTC.
+    // Persist the actual end of that local day so database review and feed
+    // expiry agree with the existing Africa/Dar_es_Salaam deadline rules.
+    return new Date(rawDeadline + "T23:59:59.999+03:00").toISOString();
+  }
+
+  const parsedDeadline = new Date(rawDeadline);
+  if (Number.isNaN(parsedDeadline.getTime())) {
+    throw new Error("Enter a valid opportunity deadline.");
+  }
+
+  return parsedDeadline.toISOString();
+}
+
 export function normalizeOpportunitySubmission(
   draft: OpportunitySubmissionDraft,
 ): OpportunitySubmissionPayload {
@@ -74,15 +101,7 @@ export function normalizeOpportunitySubmission(
     throw new Error("Description must be 3,000 characters or fewer.");
   }
 
-  const rawDeadline = draft.deadline.trim();
-  let deadline: string | null = null;
-  if (rawDeadline) {
-    const parsedDeadline = new Date(rawDeadline);
-    if (Number.isNaN(parsedDeadline.getTime())) {
-      throw new Error("Enter a valid opportunity deadline.");
-    }
-    deadline = parsedDeadline.toISOString();
-  }
+  const deadline = normalizeSubmissionDeadline(draft.deadline);
 
   return {
     title,
