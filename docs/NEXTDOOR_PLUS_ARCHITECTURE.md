@@ -51,7 +51,7 @@ The original schema and access policies pre-date this feature branch. The fourth
 - Private notes and follow-up-date events.
 - Workspace pipeline overview derived from existing saved-opportunity and activity records: current status counts, the latest scheduled follow-up per saved opportunity (including overdue reminders), and the six most recent events. No additional schema or client-side cross-workspace query is required.
 - Truthful empty state when no published opportunities are available.
-- Member-submitted opportunity intake with required original source URLs and evidence; submissions remain private while pending.
+- Member-submitted opportunity intake with required original source URLs and evidence; submissions remain private while pending. Date-only deadlines are stored as 23:59:59.999 Africa/Dar_es_Salaam (20:59:59.999Z) so database review and feed expiry share the same boundary; that canonical timestamp is displayed as a date without an invented time.
 - Platform-admin review queue with atomic approve-and-publish or reject actions and reviewer notes.
 - Platform administrator identity is held in the non-exposed `private.platform_admins` allowlist; first-admin bootstrap is documented in `docs/NEXTDOOR_PLUS_ADMIN_BOOTSTRAP.md`.
 
