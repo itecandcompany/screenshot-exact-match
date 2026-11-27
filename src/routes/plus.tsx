@@ -775,7 +775,7 @@ function NextdoorPlusPage() {
                           <div>
                             <h3 className="font-bold">{item.opportunities.title}</h3>
                             <p className="mt-1 text-xs text-[#7a887e]">
-                              Saved {new Date(item.created_at).toLocaleDateString()}
+                              Saved <time dateTime={item.created_at}>{formatOpportunityDate(item.created_at) ?? "Date unavailable"}</time>
                               {latestStatus && ` · ${latestStatus.replace("_", " ")}`}
                             </p>
                           </div>
@@ -847,7 +847,7 @@ function NextdoorPlusPage() {
                                   <span className="font-semibold">{event.event_type.replace("_", " ")}</span>
                                   {event.new_status && ` · ${event.new_status}`}
                                   {event.note && ` · ${event.note}`}
-                                  <span className="ml-2 text-[#8a9a8e]">{new Date(event.created_at).toLocaleString()}</span>
+                                  <span className="ml-2 text-[#8a9a8e]"><time dateTime={event.created_at}>{formatOpportunityDate(event.created_at) ?? "Date unavailable"}</time></span>
                                 </li>
                               ))}
                             </ul>
