@@ -57,6 +57,14 @@ The original schema and access policies pre-date this feature branch. The fourth
 
 The browser client uses the existing Vercel variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. It does not expose a service-role key. CI now verifies that the browser Supabase client reads only those two public variables and scans the built `.output/public` assets for server-only Supabase environment names, `sb_secret_` keys, and JWTs whose decoded role is `service_role`. The guard never prints matched credential values and runs after the production build.
 
+## Least-privilege PostgREST grants
+
+The incremental migration `20261127070000_nextdoor_plus_least_privilege_grants.sql` removes broad table privileges from `PUBLIC`, `anon` and `authenticated` on the seven Plus tables, then grants authenticated users only the operations used by the workspace and SECURITY INVOKER admin-review flow. The private administrator allowlist remains inaccessible to browser roles; existing `service_role` grants are deliberately untouched. RLS continues to decide which rows each operation may access.
+
+A read-only inspection of the existing Supabase project on 27 November 2026 found broad direct `anon` grants on several public tables (including profiles, workspaces, memberships, saved opportunities and activity), even though the RLS policies are scoped to authenticated users. The new migration removes those unnecessary table capabilities and keeps the required authenticated operations, including admin-only opportunity inserts and submission updates behind their existing RLS policies.
+
+This migration is committed but has **not** been applied to the existing Supabase project. Apply it only after migration review and explicit release approval; do not treat the preview build as a database deployment.
+
 ## Row-level security
 
 RLS is enabled on all seven public tables. The private administrator allowlist also has an explicit deny-client policy and no client table grants. Policies now ensure:
