@@ -1,5 +1,8 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vite/client", "vitest/globals", "node"]
+  },
   "include": [
     "src/lib/supabase/client.ts",
     "src/lib/supabase/session-refresh.ts",
