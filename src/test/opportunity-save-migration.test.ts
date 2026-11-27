@@ -1,11 +1,12 @@
 import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 
 let migration = "";
 
 beforeAll(async () => {
   migration = await readFile(
-    new URL("../../supabase/migrations/20261125090000_nextdoor_plus_atomic_saves.sql", import.meta.url),
+    resolve(process.cwd(), "supabase/migrations/20261125090000_nextdoor_plus_atomic_saves.sql"),
     "utf8",
   );
 });
