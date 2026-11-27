@@ -12,6 +12,12 @@ describe("formatOpportunityDate", () => {
     );
   });
 
+  it("keeps workspace timestamps on the Tanzania calendar day across UTC midnight", () => {
+    expect(formatOpportunityDate("2026-11-20T22:00:00.000Z")).toBe(
+      "21 Nov 2026, 01:00",
+    );
+  });
+
   it("keeps date-only values free of an invented time", () => {
     expect(formatOpportunityDate("2026-11-21")).toBe("21 Nov 2026");
   });
