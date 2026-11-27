@@ -25,6 +25,7 @@
     "src/test/workspace-overview.test.ts",
     "src/test/opportunity-save-migration.test.ts",
     "src/lib/supabase/atomic-save-compat.ts",
-    "src/test/atomic-save-compat.test.ts"
+    "src/test/atomic-save-compat.test.ts",
+    "src/test/nextdoor-plus-privileges-migration.test.ts"
   ]
 }
