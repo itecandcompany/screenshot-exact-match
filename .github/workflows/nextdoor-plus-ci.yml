@@ -50,6 +50,7 @@ jobs:
           src/test/opportunity-detail.test.ts
           src/test/opportunity-submissions.test.ts
           src/test/opportunity-save-migration.test.ts
+          src/test/nextdoor-plus-privileges-migration.test.ts
           src/test/atomic-save-compat.test.ts
           src/test/safe-external-url.test.ts
           src/test/session-refresh.test.ts
