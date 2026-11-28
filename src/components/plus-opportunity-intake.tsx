@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ArrowUpRight, CheckCircle2, FilePlus2, ShieldCheck, XCircle } from "lucide-react";
 import {
   isPlatformAdmin,
@@ -9,6 +9,10 @@ import {
   type OpportunitySubmission,
 } from "@/lib/supabase/client";
 import type { OpportunitySubmissionDraft } from "@/lib/opportunity-submissions";
+import {
+  filterOpportunitySubmissions,
+  type OpportunitySubmissionStatusFilter,
+} from "@/lib/opportunity-submission-filters";
 import { formatOpportunityDate } from "@/lib/opportunity-display";
 import { getSafeExternalUrl } from "@/lib/safe-external-url";
 
@@ -35,7 +39,10 @@ interface PlusOpportunityIntakeProps {
 export function PlusOpportunityIntake({ session, onRefresh }: PlusOpportunityIntakeProps) {
   const [draft, setDraft] = useState<OpportunitySubmissionDraft>(emptyDraft);
   const [submissions, setSubmissions] = useState<OpportunitySubmission[]>([]);
+  const [submissionSearch, setSubmissionSearch] = useState("");
+  const [submissionStatusFilter, setSubmissionStatusFilter] = useState<OpportunitySubmissionStatusFilter>("pending");
   const [isAdmin, setIsAdmin] = useState(false);
+  const loadSequence = useRef(0);
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -43,24 +50,41 @@ export function PlusOpportunityIntake({ session, onRefresh }: PlusOpportunityInt
   const [notice, setNotice] = useState("");
 
   const loadSubmissions = useCallback(async () => {
+    const sequence = ++loadSequence.current;
     setLoading(true);
     try {
-      const [admin, rows] = await Promise.all([
-        isPlatformAdmin(session),
-        listOpportunitySubmissions(session),
-      ]);
+      const admin = await isPlatformAdmin(session);
+      const rows = await listOpportunitySubmissions(
+        session,
+        admin && submissionStatusFilter !== "all" ? submissionStatusFilter : undefined,
+      );
+      if (sequence !== loadSequence.current) return;
       setIsAdmin(admin);
       setSubmissions(rows);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not load opportunity submissions.");
+      if (sequence === loadSequence.current) {
+        setError(cause instanceof Error ? cause.message : "Could not load opportunity submissions.");
+      }
     } finally {
-      setLoading(false);
+      if (sequence === loadSequence.current) setLoading(false);
     }
-  }, [session]);
+  }, [session, submissionStatusFilter]);
 
   useEffect(() => {
     void loadSubmissions();
+    return () => {
+      loadSequence.current += 1;
+    };
   }, [loadSubmissions]);
+
+  const filteredSubmissions = useMemo(
+    () =>
+      filterOpportunitySubmissions(submissions, {
+        query: submissionSearch,
+        status: isAdmin ? submissionStatusFilter : "all",
+      }),
+    [submissions, submissionSearch, submissionStatusFilter, isAdmin],
+  );
 
   function updateDraft(field: keyof OpportunitySubmissionDraft, value: string) {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -299,15 +323,58 @@ export function PlusOpportunityIntake({ session, onRefresh }: PlusOpportunityInt
           )}
         </div>
 
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="min-w-0 flex-1 text-xs font-semibold text-[#617469]">
+            Search submissions
+            <input
+              type="search"
+              value={submissionSearch}
+              onChange={(event) => setSubmissionSearch(event.target.value)}
+              aria-label="Search opportunity submissions"
+              placeholder="Search title, source, location or evidence"
+              className="mt-1.5 w-full rounded-xl border border-[#dce5dd] px-3 py-2.5 text-sm font-normal outline-none focus:border-[#4e9466]"
+            />
+          </label>
+          {isAdmin && (
+            <label className="text-xs font-semibold text-[#617469] sm:w-48">
+              Review status
+              <select
+                value={submissionStatusFilter}
+                onChange={(event) => setSubmissionStatusFilter(event.target.value as OpportunitySubmissionStatusFilter)}
+                aria-label="Filter submissions by review status"
+                className="mt-1.5 w-full rounded-xl border border-[#dce5dd] bg-white px-3 py-2.5 text-sm font-normal outline-none focus:border-[#4e9466]"
+              >
+                <option value="pending">Pending review</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="all">All statuses</option>
+              </select>
+            </label>
+          )}
+        </div>
+        {!loading && (
+          <p className="mb-3 text-xs text-[#7a887e]" aria-live="polite">
+            Showing {filteredSubmissions.length} of {submissions.length} loaded submissions
+          </p>
+        )}
+
         {loading ? (
           <p className="text-sm text-[#718075]">Loading submissions…</p>
         ) : submissions.length === 0 ? (
           <div className="rounded-xl border border-dashed border-[#cbd9cd] px-4 py-8 text-center text-sm text-[#718075]">
-            {isAdmin ? "No opportunity suggestions are waiting for review." : "Your opportunity suggestions will appear here."}
+            {isAdmin
+              ? submissionStatusFilter === "pending"
+                ? "No opportunity suggestions are waiting for review."
+                : "No opportunity suggestions are available in this view."
+              : "Your opportunity suggestions will appear here."}
+          </div>
+        ) : filteredSubmissions.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-[#cbd9cd] px-4 py-8 text-center text-sm text-[#718075]">
+            No submissions match your search or review filter.
           </div>
         ) : (
           <div className="divide-y divide-[#edf1ed]">
-            {submissions.map((submission) => {
+            {filteredSubmissions.map((submission) => {
               const sourceUrl = getSafeExternalUrl(submission.source_url);
               return (
               <article key={submission.id} className="space-y-3 py-5 first:pt-1 last:pb-1">

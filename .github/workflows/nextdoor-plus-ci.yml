@@ -34,6 +34,7 @@ jobs:
           src/lib/opportunity-display.ts
           src/lib/opportunity-detail.ts
           src/lib/opportunity-submissions.ts
+          src/lib/opportunity-submission-filters.ts
           src/lib/safe-external-url.ts
           src/lib/supabase/client.ts
           src/lib/supabase/session-refresh.ts
@@ -49,6 +50,7 @@ jobs:
           src/test/opportunity-display.test.ts
           src/test/opportunity-detail.test.ts
           src/test/opportunity-submissions.test.ts
+          src/test/opportunity-submission-filters.test.ts
           src/test/opportunity-save-migration.test.ts
           src/test/nextdoor-plus-privileges-migration.test.ts
           src/test/atomic-save-compat.test.ts

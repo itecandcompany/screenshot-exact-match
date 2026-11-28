@@ -481,9 +481,15 @@ export async function isPlatformAdmin(session: AuthSession): Promise<boolean> {
   return result === true;
 }
 
-export async function listOpportunitySubmissions(session: AuthSession) {
+export async function listOpportunitySubmissions(
+  session: AuthSession,
+  status?: "pending" | "approved" | "rejected",
+) {
+  const statusFilter = status ? "&status=eq." + status : "";
   return restRequest<OpportunitySubmission[]>(
-    "opportunity_submissions?select=id,submitted_by,title,description,country,region,city,channel,opportunity_type,deadline,source_url,source_name,source_evidence,status,review_note,reviewed_at,published_opportunity_id,created_at&order=created_at.desc&limit=100",
+    "opportunity_submissions?select=id,submitted_by,title,description,country,region,city,channel,opportunity_type,deadline,source_url,source_name,source_evidence,status,review_note,reviewed_at,published_opportunity_id,created_at" +
+      statusFilter +
+      "&order=created_at.desc&limit=100",
     { token: session.access_token, userId: session.user.id },
   );
 }
